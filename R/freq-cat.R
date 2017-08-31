@@ -1,4 +1,6 @@
 #' @importFrom grDevices topo.colors
+#' @importFrom tibble tibble
+#' @importFrom dplyr pull
 #' @title Frequency Table: Categorical Data
 #' @description \code{freq_table} creates frequency table for factor data and
 #' returns the frequency, cumulative frequency, frequency percent and cumulative
@@ -15,11 +17,14 @@
 #' \item{varname}{name of the data}
 #' @examples
 #' # frequency table
-#' freq_table(mtcars$cyl)
-#' freq_table(as.factor(mtcars$cyl))
+#' mt <- mtcars
+#' mt$cyl <- as.factor(mt$cyl)
+#' freq_table(mt$cyl)
 #'
 #' # barplot
-#' k <- freq_table(mtcars$cyl)
+#' mt <- mtcars
+#' mt$cyl <- as.factor(mt$cyl)
+#' k <- freq_table(mt$cyl)
 #' barplot(k)
 #' @seealso \code{link{freq_cont}} \code{link{cross_table}}
 #' @export
@@ -29,35 +34,42 @@ freq_table <- function(data) UseMethod("freq_table")
 #' @export
 freq_table.default <- function(data) {
 
-  if ((!is.numeric(data)) & (!is.factor(data))) {
-    stop('data must be either numeric or factor')
+  if (!is.factor(data)) {
+    stop('data must be categorical/qualitative')
   }
 
   var_name = l(deparse(substitute(data)))
   data <- na.omit(data)
-
-  if (is.factor(data)) {
-    level_names <- levels(data)
-  }
-
-  data1 <- data
-  data <- as.numeric(data)
+  level_names <- levels(data)
   data_len <- length(data)
-  cq <- unique(sort(data))
-  result <- as.vector(table(data))
+
+  # unique values in the input
+  cq <- forcats::fct_unique(data)
+
+  # count of unique values in the input
+  result <- data %>%
+    fct_count %>%
+    pull(2)
+
+  # length of result
   len <- length(result)
+
+  # cumulative frequency
   cum <- cumsum(result)
+
+  # percent
   per <- percent(result, data_len)
+
+  # cumulative percent
   cum_per <- percent(cum, data_len)
 
-  if (is.factor(data1)) {
-    ftable <- cbind(level_names, result, cum, per, cum_per)
-  } else {
-    ftable <- cbind(cq, result, cum, per, cum_per)
-  }
+  # matrix
+  ftable <- tibble(Levels = level_names,
+                   Frequency = result,
+                   `Cum Frequency` = cum,
+                   Percent = per,
+                   `Cum Percent` = cum_per)
 
-  colnames(ftable) <- c("Levels", "Frequency", "Cum Frequency",
-                        "Percent", "Cum Percent")
 
   result <- list(
     ftable = ftable,
@@ -69,9 +81,9 @@ freq_table.default <- function(data) {
 
 }
 
-#" @export
-print.freq_table <- function(data) {
-  print_ftable(data)
+#' @export
+print.freq_table <- function(x, ...) {
+  print_ftable(x)
 }
 
 
@@ -80,11 +92,11 @@ print.freq_table <- function(data) {
 #' @export
 #'
 barplot.freq_table <- function(height, ...) {
-    j <- as.numeric(height$ftable[, 2])
+    j <- as.numeric(height$ftable[[2]])
     h <- j
     ymax <- max(h)
     cols <- length(j)
-    x_names <- height$ftable[, 1]
+    x_names <- height$ftable[[1]]
     k <- barplot(j, col = topo.colors(cols),
                  main = paste('Bar Plot of', height$varname),
                  xlab = height$varname,

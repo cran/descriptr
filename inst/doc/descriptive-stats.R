@@ -31,10 +31,14 @@ k <- cross_table(mtcars$cyl, mtcars$gear)
 mosaicplot(k)
 
 ## ----ftable--------------------------------------------------------------
-freq_table(mtcars$cyl)
+mt <- mtcars
+mt$cyl <- as.factor(mt$cyl)
+freq_table(mt$cyl)
 
 ## ----ftable_bar, fig.width=7, fig.height=7, fig.align='centre'-----------
-k <- freq_table(mtcars$cyl)
+mt <- mtcars
+mt$cyl <- as.factor(mt$cyl)
+k <- freq_table(mt$cyl)
 barplot(k)
 
 ## ----fcont---------------------------------------------------------------
