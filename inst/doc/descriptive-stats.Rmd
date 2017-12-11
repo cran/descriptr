@@ -29,7 +29,7 @@ visualize statistical distributions.
 
 ## Data Screening
 
-The `screener` function will screen a data set and return the following:
+The `ds_screener()` function will screen a data set and return the following:
 - Column/Variable Names
 - Data Type
 - Levels (in case of categorical data)
@@ -41,27 +41,27 @@ The `screener` function will screen a data set and return the following:
 mt <- mtcars
 mt[, c(2, 8:11)] <- lapply(mt[, c(2, 8:11)], factor)
 mt[sample(1:nrow(mt), 12), sample(1:ncol(mt), 6)] <- NA
-screener(mt)
+ds_screener(mt)
 ```
 
 
 ## Summary Statistics
 
-The `summary_stats` function returns a comprehensive set of statistics for 
+The `ds_summary_stats` function returns a comprehensive set of statistics for 
 **continuous** data. 
 
 ```{r summary}
-summary_stats(mtcars$mpg)
+ds_summary_stats(mtcars$mpg)
 ```
 
 
 ## Cross Tabulation
 
-The `cross_table` function creates two way tables of categorical variables. It
+The `ds_cross_table` function creates two way tables of categorical variables. It
 is **not necessary** to coerce a variable to type `factor`.
 
 ```{r cross}
-cross_table(mtcars$cyl, mtcars$gear)
+ds_cross_table(mtcars$cyl, mtcars$gear)
 ```
 
 A plot method has been defined which will generate:
@@ -70,7 +70,7 @@ A plot method has been defined which will generate:
 ### Grouped Bar Plots
 
 ```{r cross_group, fig.width=7, fig.height=7, fig.align='centre'}
-k <- cross_table(mtcars$cyl, mtcars$gear)
+k <- ds_cross_table(mtcars$cyl, mtcars$gear)
 plot(k, beside = TRUE)
 ```
 
@@ -78,7 +78,7 @@ plot(k, beside = TRUE)
 ### Stacked Bar Plots
 
 ```{r cross_stack, fig.width=7, fig.height=7, fig.align='centre'}
-k <- cross_table(mtcars$cyl, mtcars$gear)
+k <- ds_cross_table(mtcars$cyl, mtcars$gear)
 plot(k)
 ```
 
@@ -86,7 +86,7 @@ plot(k)
 ### Proportional Bar Plots
 
 ```{r cross_prop, fig.width=7, fig.height=7, fig.align='centre'}
-k <- cross_table(mtcars$cyl, mtcars$gear)
+k <- ds_cross_table(mtcars$cyl, mtcars$gear)
 plot(k, proportional = TRUE)
 ```
 
@@ -96,19 +96,19 @@ plot(k, proportional = TRUE)
 Mosaic plots can be created using the `mosaciplot` method.
 
 ```{r mosaic, fig.width=7, fig.height=7, fig.align='centre'}
-k <- cross_table(mtcars$cyl, mtcars$gear)
+k <- ds_cross_table(mtcars$cyl, mtcars$gear)
 mosaicplot(k)
 ```
 
 
 ## Frequency Table (Categorical Data)
 
-The `freq_table` function creates frequency tables for categorical variables. 
+The `ds_freq_table()` function creates frequency tables for categorical variables. 
 
 ```{r ftable}
 mt <- mtcars
 mt$cyl <- as.factor(mt$cyl)
-freq_table(mt$cyl)
+ds_freq_table(mt$cyl)
 ```
 
 
@@ -119,18 +119,18 @@ A barplot method has been defined.
 ```{r ftable_bar, fig.width=7, fig.height=7, fig.align='centre'}
 mt <- mtcars
 mt$cyl <- as.factor(mt$cyl)
-k <- freq_table(mt$cyl)
+k <- ds_freq_table(mt$cyl)
 barplot(k)
 ```
 
 
 ## Frequency Table (Continuous Data)
 
-The `freq_cont` function creates frequency tables for continuous variables. The
+The `ds_freq_cont` function creates frequency tables for continuous variables. The
 default number of intervals is 5.
 
 ```{r fcont}
-freq_cont(mtcars$mpg, 4)
+ds_freq_cont(mtcars$mpg, 4)
 ```
 
 
@@ -139,56 +139,66 @@ freq_cont(mtcars$mpg, 4)
 A `hist` method has been defined.
 
 ```{r fcont_hist, fig.width=7, fig.height=7, fig.align='centre'}
-k <- freq_cont(mtcars$mpg, 4)
+k <- ds_freq_cont(mtcars$mpg, 4)
 hist(k)
 ```
 
 
 ## Group Summary
 
-The `group_summary` function returns descriptive statistics of a continuous
+The `ds_group_summary()` function returns descriptive statistics of a continuous
 variable for the different levels of a categorical variable.
 
 ```{r gsummary}
 mt <- mtcars
 mt$cyl <- as.factor(mt$cyl)
-group_summary(mt$cyl, mt$mpg)
+ds_group_summary(mt$cyl, mt$mpg)
 ```
 
 
 ### Box Plot
 
-A `boxplot` method has been defined.
+A `boxplot()` method has been defined.
 
 ```{r gsum_boxplot, fig.width=7, fig.height=7, fig.align='centre'}
 mt <- mtcars
 mt$cyl <- as.factor(mt$cyl)
-k <- group_summary(mt$cyl, mt$mpg)
+k <- ds_group_summary(mt$cyl, mt$mpg)
 boxplot(k)
 ```
 
+## Multiple Variable Statistics 
+
+The `ds_multi_stats()` function generates summary/descriptive statistics for multiple variables in a data frame/tibble.
+
+```{r multistats}
+ds_multi_stats(mtcars, mpg, disp, hp)
+```
 
 ## Multiple One Way Tables
 
-The `oway_tables` function creates multiple one way tables by creating a 
+The `ds_oway_tables()` function creates multiple one way tables by creating a 
 frequency table for each categorical variable in a data frame.
 
 ```{r oway}
 mt <- mtcars
 mt[, c(2, 8:11)] <- lapply(mt[, c(2, 8:11)], factor)
-oway_tables(mt)
+ds_oway_tables(mt)
 ```
 
 
 ## Multiple Two Way Tables
 
-The `tway_tables` function creates multiple two way tables by creating a cross
+The `ds_tway_tables()` function creates multiple two way tables by creating a cross
 table for each unique pair of categorical variables in a data frame.
 
 ```{r tway}
 mt <- mtcars
 mt[, c(2, 8:10)] <- lapply(mt[, c(2, 8:10)], factor)
-tway_tables(mt)
+ds_tway_tables(mt)
 ```
+
+
+
 
 
