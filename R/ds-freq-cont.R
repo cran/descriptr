@@ -5,10 +5,10 @@
 #' continuous by splitting the data into equidistant intervals created based on
 #' the number of bins specified. \code{hist.ds_freq_cont} creates histogram
 #' for the frequency table created using \code{ds_freq_cont}
-#' @param data numeric vector
+#' @param data a \code{data.frame} or a \code{tibble}
+#' @param variable numeric; column in \code{data}
 #' @param bins number of intervals into which the data must be split
 #' @param x an object of class \code{ds_freq_cont}
-#' @param col color of the bars
 #' @param ... further arguments to be passed to or from methods
 #' @return \code{ds_freq_cont} returns an object of class \code{"ds_freq_cont"}
 #' An object of class \code{"ds_freq_cont"} is a list containing the
@@ -26,49 +26,60 @@
 #' \code{freq_cont()} has been deprecated. Instead use \code{ds_freq_cont()}.
 #' @examples
 #' # frequency table
-#' ds_freq_cont(mtcars$mpg, 4)
+#' ds_freq_cont(mtcarz, mpg, 4)
 #'
 #' # histogram
-#' k <- ds_freq_cont(mtcars$mpg, 4)
-#' hist(k)
+#' k <- ds_freq_cont(mtcarz, mpg, 4)
+#' plot(k)
 #' @seealso \code{link{ds_freq_table}} \code{link{ds_cross_table}}
 #' @export
 #'
-ds_freq_cont <- function(data, bins = 5) UseMethod("ds_freq_cont")
+ds_freq_cont <- function(data, variable, bins = 5) UseMethod("ds_freq_cont")
 
 
 #' @export
-ds_freq_cont.default <- function(data, bins = 5) {
+ds_freq_cont.default <- function(data, variable, bins = 5) {
+  varyable <- enquo(variable)
 
-  if(!is.numeric(data)) {
-    stop('data must be numeric')
+  fdata <-
+    data %>%
+    pull(!! varyable) %>%
+    na.omit()
+
+  if (!is.numeric(fdata)) {
+    stop("variable must be numeric")
   }
 
-  if(!is.numeric(bins)) {
-    stop('bins must be integer value')
+  if (!is.numeric(bins)) {
+    stop("bins must be integer value")
   }
 
-  if(is.numeric(bins)) {
+  if (is.numeric(bins)) {
     bins <- as.integer(bins)
   }
 
-  var_name <- l(deparse(substitute(data)))
-  data <- na.omit(data)
+  var_name <-
+    data %>%
+    select(!! varyable) %>%
+    names()
+
   n_bins <- bins
-  inta <- intervals(data, bins)
-  result <- freq(data, bins, inta)
-  data_len <- length(data)
+  inta <- intervals(fdata, bins)
+  result <- freq(fdata, bins, inta)
+  data_len <- length(fdata)
   cum <- cumsum(result)
   per <- percent(result, data_len)
   cum_per <- percent(cum, data_len)
-  out <- list(breaks = inta,
-              frequency = result,
-              cumulative = cum,
-              percent = per,
-              cum_percent = cum_per,
-              bins = n_bins,
-              data = data,
-              varname = var_name)
+  out <- list(
+    breaks = inta,
+    frequency = result,
+    cumulative = cum,
+    percent = per,
+    cum_percent = cum_per,
+    bins = n_bins,
+    data = fdata,
+    varname = var_name
+  )
 
   class(out) <- "ds_freq_cont"
   return(out)
@@ -79,10 +90,7 @@ ds_freq_cont.default <- function(data, bins = 5) {
 #' @usage NULL
 #'
 freq_cont <- function(data, bins = 5) {
-
   .Deprecated("ds_freq_cont()")
-  ds_freq_cont(data, bins)
-
 }
 
 
@@ -91,15 +99,42 @@ print.ds_freq_cont <- function(x, ...) {
   print_fcont(x)
 }
 
+#' @importFrom tibble add_column
+#' @importFrom ggplot2 geom_col
 #' @rdname ds_freq_cont
 #' @export
 #'
-hist.ds_freq_cont <- function(x, col = 'blue', ...) {
+plot.ds_freq_cont <- function(x, ...) {
+  x_lab <-
+    x %>%
+    use_series(varname)
 
-  ymax <- max(x$frequency) + 2
-  h <-  hist(x$data, breaks = x$breaks,
-        main = paste('Histogram of', x$varname),
-        xlab = x$varname, ylab = 'Frequency', ylim = c(0, ymax), col = col)
-  text(h$mids, h$counts + 1, labels = h$counts, adj = 0.5, pos = 1)
+  k <-
+    x %>%
+    use_series(varname) %>%
+    extract(1) %>%
+    sym()
 
+  bins <-
+    x %>%
+    use_series(frequency) %>%
+    length()
+
+  p <-
+    x %>%
+    use_series(frequency) %>%
+    as_tibble() %>%
+    add_column(x = seq_len(bins), .before = 1) %>%
+    ggplot() +
+    geom_col(
+      aes(x = x, y = value), width = 0.999,
+      fill = "blue", color = "black"
+    ) +
+    xlab(x_lab) + ylab("Count") +
+    ggtitle(paste("Histogram of", x_lab))
+
+  print(p)
+
+  result <- list(plot = p)
+  invisible(result)
 }

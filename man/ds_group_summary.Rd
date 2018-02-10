@@ -3,17 +3,19 @@
 \name{ds_group_summary}
 \alias{ds_group_summary}
 \alias{group_summary}
-\alias{boxplot.ds_group_summary}
+\alias{plot.ds_group_summary}
 \title{Descriptive Statistics By Group}
 \usage{
-ds_group_summary(fvar, cvar)
+ds_group_summary(data, gvar, cvar)
 
-\method{boxplot}{ds_group_summary}(x, ...)
+\method{plot}{ds_group_summary}(x, ...)
 }
 \arguments{
-\item{fvar}{a factor variable}
+\item{data}{a \code{data.frame} or a \code{tibble}}
 
-\item{cvar}{a continuous variable}
+\item{gvar}{factor; column in \code{data}}
+
+\item{cvar}{continuous; column in \code{data}}
 
 \item{x}{an object of the class \code{ds_group_summary}}
 
@@ -44,13 +46,11 @@ use \code{ds_group_summary()}.
 
 \examples{
 # ds_group summary
-mt <- mtcars
-mt$cyl <- as.factor(mt$cyl)
-ds_group_summary(mt$cyl, mt$mpg)
+ds_group_summary(mtcarz, cyl, mpg)
 
 # boxplot
-k <- ds_group_summary(mt$cyl, mt$mpg)
-boxplot(k)
+k <- ds_group_summary(mtcarz, cyl, mpg)
+plot(k)
 }
 \seealso{
 \code{link{ds_summary_stats}}

@@ -3,17 +3,19 @@
 \name{ds_freq_table}
 \alias{ds_freq_table}
 \alias{freq_table}
-\alias{barplot.ds_freq_table}
+\alias{plot.ds_freq_table}
 \title{Frequency Table: Categorical Data}
 \usage{
-ds_freq_table(data)
+ds_freq_table(data, variable)
 
-\method{barplot}{ds_freq_table}(height, ...)
+\method{plot}{ds_freq_table}(x, ...)
 }
 \arguments{
-\item{data}{numeric or factor vector}
+\item{data}{a \code{data.frame} or a \code{tibble}}
 
-\item{height}{an object of class \code{ds_freq_table}}
+\item{variable}{column in \code{data}}
+
+\item{x}{an object of class \code{ds_freq_table}}
 
 \item{...}{further arguments to be passed to or from methods}
 }
@@ -38,15 +40,11 @@ frequency table created using \code{ds_freq_table}
 
 \examples{
 # frequency table
-mt <- mtcars
-mt$cyl <- as.factor(mt$cyl)
-ds_freq_table(mt$cyl)
+ds_freq_table(mtcarz, cyl)
 
 # barplot
-mt <- mtcars
-mt$cyl <- as.factor(mt$cyl)
-k <- ds_freq_table(mt$cyl)
-barplot(k)
+k <- ds_freq_table(mtcarz, cyl)
+plot(k)
 }
 \seealso{
 \code{link{ds_freq_cont}} \code{link{ds_cross_table}}

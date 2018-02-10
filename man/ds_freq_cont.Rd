@@ -3,21 +3,21 @@
 \name{ds_freq_cont}
 \alias{ds_freq_cont}
 \alias{freq_cont}
-\alias{hist.ds_freq_cont}
+\alias{plot.ds_freq_cont}
 \title{Frequency Distribution of Continuous Data}
 \usage{
-ds_freq_cont(data, bins = 5)
+ds_freq_cont(data, variable, bins = 5)
 
-\method{hist}{ds_freq_cont}(x, col = "blue", ...)
+\method{plot}{ds_freq_cont}(x, ...)
 }
 \arguments{
-\item{data}{numeric vector}
+\item{data}{a \code{data.frame} or a \code{tibble}}
+
+\item{variable}{numeric; column in \code{data}}
 
 \item{bins}{number of intervals into which the data must be split}
 
 \item{x}{an object of class \code{ds_freq_cont}}
-
-\item{col}{color of the bars}
 
 \item{...}{further arguments to be passed to or from methods}
 }
@@ -48,11 +48,11 @@ for the frequency table created using \code{ds_freq_cont}
 
 \examples{
 # frequency table
-ds_freq_cont(mtcars$mpg, 4)
+ds_freq_cont(mtcarz, mpg, 4)
 
 # histogram
-k <- ds_freq_cont(mtcars$mpg, 4)
-hist(k)
+k <- ds_freq_cont(mtcarz, mpg, 4)
+plot(k)
 }
 \seealso{
 \code{link{ds_freq_table}} \code{link{ds_cross_table}}

@@ -4,23 +4,22 @@
 \alias{ds_cross_table}
 \alias{cross_table}
 \alias{plot.ds_cross_table}
-\alias{mosaicplot.ds_cross_table}
 \title{Two Way Tables}
 \usage{
-ds_cross_table(var1, var2)
+ds_cross_table(data, var1, var2)
 
-\method{plot}{ds_cross_table}(x, beside = FALSE, proportional = FALSE, ...)
-
-\method{mosaicplot}{ds_cross_table}(x, ...)
+\method{plot}{ds_cross_table}(x, stacked = FALSE, proportional = FALSE, ...)
 }
 \arguments{
+\item{data}{a \code{data.frame} or a \code{tibble}}
+
 \item{var1}{First categorical variable}
 
 \item{var2}{Second categorical variable}
 
 \item{x}{An object of class cross_table}
 
-\item{beside}{a logical value. If FALSE, the columns of height are portrayed
+\item{stacked}{a logical value. If FALSE, the columns of height are portrayed
 as stacked bars, and if TRUE the columns are portrayed as juxtaposed bars.}
 
 \item{proportional}{a logical value. If TRUE, the height of the bars is
@@ -54,14 +53,11 @@ variables. The tables created can be visualized as barplots and mosaicplots.
 }
 
 \examples{
-k <- ds_cross_table(mtcars$cyl, mtcars$am)
+k <- ds_cross_table(mtcarz, cyl, am)
 k
 
 # bar plots
 plot(k)
-plot(k, beside = TRUE)
+plot(k, stacked = TRUE)
 plot(k, proportional = TRUE)
-
-# mosaic plots
-mosaicplot(k)
 }

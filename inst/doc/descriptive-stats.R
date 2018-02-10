@@ -2,73 +2,57 @@
 library(descriptr)
 library(dplyr)
 
+## ----egdata--------------------------------------------------------------
+str(mtcarz)
+
 ## ----screener------------------------------------------------------------
-mt <- mtcars
-mt[, c(2, 8:11)] <- lapply(mt[, c(2, 8:11)], factor)
-mt[sample(1:nrow(mt), 12), sample(1:ncol(mt), 6)] <- NA
-ds_screener(mt)
+ds_screener(mtcarz)
 
 ## ----summary-------------------------------------------------------------
-ds_summary_stats(mtcars$mpg)
+ds_summary_stats(mtcarz, mpg)
 
 ## ----cross---------------------------------------------------------------
-ds_cross_table(mtcars$cyl, mtcars$gear)
+ds_cross_table(mtcarz, cyl, gear)
 
 ## ----cross_group, fig.width=7, fig.height=7, fig.align='centre'----------
-k <- ds_cross_table(mtcars$cyl, mtcars$gear)
-plot(k, beside = TRUE)
-
-## ----cross_stack, fig.width=7, fig.height=7, fig.align='centre'----------
-k <- ds_cross_table(mtcars$cyl, mtcars$gear)
+k <- ds_cross_table(mtcarz, cyl, gear)
 plot(k)
 
+## ----cross_stack, fig.width=7, fig.height=7, fig.align='centre'----------
+k <- ds_cross_table(mtcarz, cyl, gear)
+plot(k, stacked = TRUE)
+
 ## ----cross_prop, fig.width=7, fig.height=7, fig.align='centre'-----------
-k <- ds_cross_table(mtcars$cyl, mtcars$gear)
+k <- ds_cross_table(mtcarz, cyl, gear)
 plot(k, proportional = TRUE)
 
-## ----mosaic, fig.width=7, fig.height=7, fig.align='centre'---------------
-k <- ds_cross_table(mtcars$cyl, mtcars$gear)
-mosaicplot(k)
-
 ## ----ftable--------------------------------------------------------------
-mt <- mtcars
-mt$cyl <- as.factor(mt$cyl)
-ds_freq_table(mt$cyl)
+ds_freq_table(mtcarz, cyl)
 
 ## ----ftable_bar, fig.width=7, fig.height=7, fig.align='centre'-----------
-mt <- mtcars
-mt$cyl <- as.factor(mt$cyl)
-k <- ds_freq_table(mt$cyl)
-barplot(k)
+k <- ds_freq_table(mtcarz, cyl)
+plot(k)
 
 ## ----fcont---------------------------------------------------------------
-ds_freq_cont(mtcars$mpg, 4)
+ds_freq_cont(mtcarz, mpg, 4)
 
 ## ----fcont_hist, fig.width=7, fig.height=7, fig.align='centre'-----------
-k <- ds_freq_cont(mtcars$mpg, 4)
-hist(k)
+k <- ds_freq_cont(mtcarz, mpg, 4)
+plot(k)
 
 ## ----gsummary------------------------------------------------------------
-mt <- mtcars
-mt$cyl <- as.factor(mt$cyl)
-ds_group_summary(mt$cyl, mt$mpg)
+ds_group_summary(mtcarz, cyl, mpg)
 
 ## ----gsum_boxplot, fig.width=7, fig.height=7, fig.align='centre'---------
-mt <- mtcars
-mt$cyl <- as.factor(mt$cyl)
-k <- ds_group_summary(mt$cyl, mt$mpg)
-boxplot(k)
+k <- ds_group_summary(mtcarz, cyl, mpg)
+plot(k)
 
 ## ----multistats----------------------------------------------------------
-ds_multi_stats(mtcars, mpg, disp, hp)
+ds_multi_stats(mtcarz, mpg, disp, hp)
 
 ## ----oway----------------------------------------------------------------
-mt <- mtcars
-mt[, c(2, 8:11)] <- lapply(mt[, c(2, 8:11)], factor)
-ds_oway_tables(mt)
+ds_oway_tables(mtcarz)
 
 ## ----tway----------------------------------------------------------------
-mt <- mtcars
-mt[, c(2, 8:10)] <- lapply(mt[, c(2, 8:10)], factor)
-ds_tway_tables(mt)
+ds_tway_tables(mtcarz)
 
