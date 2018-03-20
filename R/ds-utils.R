@@ -74,8 +74,18 @@ md_helper <- function(x, y) {
   abs(x - y)
 }
 
-
-std_error <- function(x) {
+#' Standard error of mean
+#'
+#' Returns the standard error of mean.
+#'
+#' @param x A numeric vector.
+#'
+#' @examples
+#' ds_std_error(mtcars$mpg)
+#'
+#' @export
+#'
+ds_std_error <- function(x) {
   sd(x) / (length(x) ^ 0.5)
 }
 
@@ -128,6 +138,10 @@ formatnc <- function(x, w) {
     format(width = w, justify = "centre")
 }
 
+
+fs <- function() {
+  x <- rep("  ")
+}
 
 formats <- function() {
   x <- rep("    ")
@@ -300,15 +314,24 @@ pol_t <- function(l1, l2, df, col) {
   polygon(x, y, col = col)
 }
 
-trimmed_mean <- function(x) {
+trimmed_mean <- function(x, na.rm = FALSE) {
+  if (na.rm) {
+    x <- na.omit(x)
+  }
   mean(x, trim = 0.05)
 }
 
-quant1 <- function(x) {
+quant1 <- function(x, na.rm = FALSE) {
+  if (na.rm) {
+    x <- na.omit(x)
+  }
   quantile(x, probs = 0.25)
 }
 
-quant3 <- function(x) {
+quant3 <- function(x, na.rm = FALSE) {
+  if (na.rm) {
+    x <- na.omit(x)
+  }
   quantile(x, probs = 0.75)
 }
 

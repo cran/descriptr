@@ -202,6 +202,8 @@ print_screen <- function(x) {
     lapply(nchar) %>%
     unlist() %>%
     max()
+  # If there are several classes, join them into one string:
+  x$Types <- lapply(x$Types, paste, collapse = ", ")
   lengths <- list(x$Variables, x$Types, xlev, x$Missing, x$MissingPer)
   n <- length(columns)
   nlist <- list()
@@ -237,22 +239,27 @@ print_screen <- function(x) {
 
 
 print_fcont <- function(data) {
-  blen <- data %>%
+
+  blen <-
+    data %>%
     use_series(breaks) %>%
     nchar() %>%
     max()
 
-  blen2 <- blen %>%
+  blen2 <-
+    blen %>%
     multiply_by(2) %>%
     add(4)
 
-  flen <- data %>%
+  flen <-
+    data %>%
     use_series(frequency) %>%
     nchar() %>%
     max() %>%
     max(9)
 
-  clen <- data %>%
+  clen <-
+    data %>%
     use_series(cumulative) %>%
     nchar() %>%
     max() %>%
@@ -287,43 +294,128 @@ print_fcont <- function(data) {
     cat(rep("-", dash), sep = "")
     cat("|")
   }
+  cat("\n")
+  nlen <- blen * 2 + 4
+  if (data$na_count > 0) {
+    na_percent <- format((data$na_count / data$n) * 100, nsmall = 2)
+    cat("|", format("Missing", width = nlen, justify = "centre"))
+    cat("|", format(as.character(round(data$na_count, 2)), width = flen, justify = "centre"))
+    cat(" |",  format("-", width = clen, justify = "centre"))
+    cat(" |", format(as.character(na_percent), width = 12, justify = "centre"))
+    cat(" |", format("-", width = 12, justify = "centre"))
+    cat(" |")
+    cat("\n|")
+    cat(rep("-", dash), sep = "")
+    cat("|\n")
+  }
+  cat("|", format("Total", width = nlen, justify = "centre"))
+  cat("|", format(as.character(data$n), width = flen, justify = "centre"))
+  cat(" |",  format("-", width = clen, justify = "centre"))
+  cat(" |", format("100.00", width = 12, justify = "centre"))
+  cat(" |", format("-", width = 12, justify = "centre"))
+  cat(" |")
+  cat("\n|")
+  cat(rep("-", dash), sep = "")
+  cat("|")
 }
 
 
 print_ftable <- function(x) {
   nr <- nrow(x$ftable)
   nc <- ncol(x$ftable)
-  cat(format(paste("Variable:", x$varname), width = 76, justify = "centre"), "\n")
-  cat("|--------------------------------------------------------------------------|
-|                                Cumulative                    Cumulative  |
-|    Levels    |  Frequency   |   Frequency  |   Percent    |    Percent   |
-|--------------------------------------------------------------------------|\n")
+  w1 <- max(nchar("Levels"), nchar(x$ftable$Levels), nchar("Missing"))
+  w2 <- max(nchar("Frequency"), nchar(x$ftable$Frequency), nchar(x$na_count))
+  w3 <- max(nchar("Cum Frequency"), nchar(x$ftable$`Cum Frequency`))
+  w <- sum(w1, w2, w3, 26, 16)
+  cat(format(paste("Variable:", x$varname), width = w, justify = "centre"), "\n")
+  cat(rep("-", w), sep = "")
+  cat("\n")
+  cat(format("Levels", width = w1, justify = "centre"), fs(),
+      format("Frequency", width = w2, justify = "centre"), fs(),
+      format("Cum Frequency", width = w3, justify = "centre"), fs(),
+      format("Percent", width = 13, justify = "centre"), fs(),
+      format("Cum Percent", width = 13, justify = "centre"), "\n")
+  cat(rep("-", w), sep = "")
   for (i in seq_len(nr)) {
-    for (j in seq_len(nc)) {
-      cat("|", formatter_freq(x$ftable[i, j]))
-    }
-    cat("|")
-    cat("\n|--------------------------------------------------------------------------|\n")
+    cat("\n")
+    cat(format(as.character(x$ftable$Levels[i]), width = w1, justify = "centre"), fs(),
+      format(as.character(x$ftable$Frequency[i]), width = w2, justify = "centre"), fs(),
+      format(as.character(x$ftable$`Cum Frequency`[i]), width = w3, justify = "centre"), fs(),
+      format(as.character(x$ftable$Percent[i]), width = 13, justify = "centre"), fs(),
+      format(as.character(x$ftable$`Cum Percent`[i]), width = 13, justify = "centre")
+    )
+    cat("\n")
+    cat(rep("-", w), sep = "")
   }
+  cat("\n")
+  if (x$na_count > 0) {
+    na_percent <- format((x$na_count / x$n) * 100, nsmall = 2)
+    cat(format("Missing", width = w1, justify = "centre"), fs(),
+        format(as.character(x$na_count), width = w2, justify = "centre"), fs(),
+        format("-", width = w3, justify = "centre"), fs(),
+        format(as.character(na_percent), width = 13, justify = "centre"), fs(),
+        format("-", width = 13, justify = "centre"))
+    cat("\n")
+    cat(rep("-", w), sep = "")
+    cat("\n")
+  }
+  cat(format("Total", width = w1, justify = "centre"), fs(),
+      format(as.character(x$n), width = w2, justify = "centre"), fs(),
+      format("-", width = w3, justify = "centre"), fs(),
+      format("100.00", width = 13, justify = "centre"), fs(),
+      format("-", width = 13, justify = "centre"))
+  cat("\n")
+  cat(rep("-", w), sep = "")
   cat("\n\n")
 }
 
 
-print_ftable2 <- function(data) {
-  nr <- nrow(data$ftable)
-  nc <- ncol(data$ftable)
-  cat(format(paste("Variable:", data$varname), width = 76, justify = "centre"), "\n")
-  cat("|--------------------------------------------------------------------------|
-|                                Cumulative                    Cumulative  |
-|    Levels    |  Frequency   |   Frequency  |   Percent    |    Percent   |
-|--------------------------------------------------------------------------|\n")
+print_ftable2 <- function(x) {
+  nr <- nrow(x$ftable)
+  nc <- ncol(x$ftable)
+  w1 <- max(nchar("Levels"), nchar(x$ftable$Levels), nchar("Missing"))
+  w2 <- max(nchar("Frequency"), nchar(x$ftable$Frequency), nchar(x$na_count))
+  w3 <- max(nchar("Cum Frequency"), nchar(x$ftable$`Cum Frequency`))
+  w <- sum(w1, w2, w3, 26, 16)
+  cat(format(paste("Variable:", x$varname), width = w, justify = "centre"), "\n")
+  cat(rep("-", w), sep = "")
+  cat("\n")
+  cat(format("Levels", width = w1, justify = "centre"), fs(),
+      format("Frequency", width = w2, justify = "centre"), fs(),
+      format("Cum Frequency", width = w3, justify = "centre"), fs(),
+      format("Percent", width = 13, justify = "centre"), fs(),
+      format("Cum Percent", width = 13, justify = "centre"), "\n")
+  cat(rep("-", w), sep = "")
   for (i in seq_len(nr)) {
-    for (j in seq_len(nc)) {
-      cat("|", formatter_freq(data$ftable[i, j]))
-    }
-    cat("|")
-    cat("\n|--------------------------------------------------------------------------|\n")
+    cat("\n")
+    cat(format(as.character(x$ftable$Levels[i]), width = w1, justify = "centre"), fs(),
+        format(as.character(x$ftable$Frequency[i]), width = w2, justify = "centre"), fs(),
+        format(as.character(x$ftable$`Cum Frequency`[i]), width = w3, justify = "centre"), fs(),
+        format(as.character(x$ftable$Percent[i]), width = 13, justify = "centre"), fs(),
+        format(as.character(x$ftable$`Cum Percent`[i]), width = 13, justify = "centre")
+    )
+    cat("\n")
+    cat(rep("-", w), sep = "")
   }
+  cat("\n")
+  if (x$na_count > 0) {
+    na_percent <- format((x$na_count / x$n) * 100, nsmall = 2)
+    cat(format("Missing", width = w1, justify = "centre"), fs(),
+        format(as.character(x$na_count), width = w2, justify = "centre"), fs(),
+        format("-", width = w3, justify = "centre"), fs(),
+        format(as.character(na_percent), width = 13, justify = "centre"), fs(),
+        format("-", width = 13, justify = "centre"))
+    cat("\n")
+    cat(rep("-", w), sep = "")
+    cat("\n")
+  }
+  cat(format("Total", width = w1, justify = "centre"), fs(),
+      format(as.character(x$n), width = w2, justify = "centre"), fs(),
+      format("-", width = w3, justify = "centre"), fs(),
+      format("100.00", width = 13, justify = "centre"), fs(),
+      format("-", width = 13, justify = "centre"))
+  cat("\n")
+  cat(rep("-", w), sep = "")
   cat("\n\n")
 }
 

@@ -1,29 +1,24 @@
+#' Frequency distribution of continuous data
+#'
+#' Frequency distribution of continuous data by splitting into equidistant
+#' intervals created based on the number of bins specified.
+#' \code{hist.ds_freq_cont()} creates histogram for the frequency table
+#' created using \code{ds_freq_cont()}.
+#'
+#' @param data A \code{data.frame} or a \code{tibble}.
+#' @param variable Column in \code{data}.
+#' @param bins Number of intervals into which the data must be split.
+#' @param x An object of class \code{ds_freq_cont}.
+#' @param ... Further arguments to be passed to or from methods.
+#'
+#' @return A tibble.
+#'
+#' @section Deprecated functions:
+#' \code{freq_cont()} has been deprecated. Instead use \code{ds_freq_cont()}.
+#'
 #' @importFrom graphics hist
 #' @importFrom magrittr use_series multiply_by add
-#' @title Frequency Distribution of Continuous Data
-#' @description \code{ds_freq_cont} returns the frequency distribution of
-#' continuous by splitting the data into equidistant intervals created based on
-#' the number of bins specified. \code{hist.ds_freq_cont} creates histogram
-#' for the frequency table created using \code{ds_freq_cont}
-#' @param data a \code{data.frame} or a \code{tibble}
-#' @param variable numeric; column in \code{data}
-#' @param bins number of intervals into which the data must be split
-#' @param x an object of class \code{ds_freq_cont}
-#' @param ... further arguments to be passed to or from methods
-#' @return \code{ds_freq_cont} returns an object of class \code{"ds_freq_cont"}
-#' An object of class \code{"ds_freq_cont"} is a list containing the
-#' following components
 #'
-#' \item{breaks}{lower/upper boundaries of intervals}
-#' \item{frequency}{frequecy of the intervals}
-#' \item{cumulative}{cumulative frequency}
-#' \item{percent}{frequency as percent}
-#' \item{cum_percent}{cumulative frequency as percent}
-#' \item{bins}{bins}
-#' \item{data}{data}
-#' \item{varname}{name of the data}
-#' @section Deprecated Functions:
-#' \code{freq_cont()} has been deprecated. Instead use \code{ds_freq_cont()}.
 #' @examples
 #' # frequency table
 #' ds_freq_cont(mtcarz, mpg, 4)
@@ -31,7 +26,9 @@
 #' # histogram
 #' k <- ds_freq_cont(mtcarz, mpg, 4)
 #' plot(k)
-#' @seealso \code{link{ds_freq_table}} \code{link{ds_cross_table}}
+#'
+#' @seealso \code{\link{ds_freq_table}} \code{\link{ds_cross_table}}
+#'
 #' @export
 #'
 ds_freq_cont <- function(data, variable, bins = 5) UseMethod("ds_freq_cont")
@@ -39,6 +36,7 @@ ds_freq_cont <- function(data, variable, bins = 5) UseMethod("ds_freq_cont")
 
 #' @export
 ds_freq_cont.default <- function(data, variable, bins = 5) {
+
   varyable <- enquo(variable)
 
   fdata <-
@@ -63,14 +61,43 @@ ds_freq_cont.default <- function(data, variable, bins = 5) {
     select(!! varyable) %>%
     names()
 
-  n_bins <- bins
-  inta <- intervals(fdata, bins)
-  result <- freq(fdata, bins, inta)
+  n_bins   <- bins
+  inta     <- intervals(fdata, bins)
+  result   <- freq(fdata, bins, inta)
   data_len <- length(fdata)
-  cum <- cumsum(result)
-  per <- percent(result, data_len)
-  cum_per <- percent(cum, data_len)
+  cum      <- cumsum(result)
+  per      <- percent(result, data_len)
+  cum_per  <- percent(cum, data_len)
+
+  na_count <-
+    data %>%
+    pull(!! varyable) %>%
+    is.na() %>%
+    sum()
+
+  if (na_count > 0) {
+    na_freq <- na_count
+  } else {
+    na_freq <- 0
+  }
+
+  n_obs <-
+    data %>%
+    pull(!! varyable) %>%
+    length()
+
+  lower_n <- n_bins + 1
+
+  freq_data <-
+    tibble(lower = inta[-lower_n],
+           upper = inta[-1],
+           frequency = result,
+           cumulative = cum,
+           freq_percent = per,
+           cum_percent = cum_per)
+
   out <- list(
+    freq_data = freq_data,
     breaks = inta,
     frequency = result,
     cumulative = cum,
@@ -78,6 +105,8 @@ ds_freq_cont.default <- function(data, variable, bins = 5) {
     cum_percent = cum_per,
     bins = n_bins,
     data = fdata,
+    na_count = na_freq,
+    n = n_obs,
     varname = var_name
   )
 

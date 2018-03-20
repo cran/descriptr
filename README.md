@@ -1,7 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-## descriptr: Generate descriptive statistics and explore distributions
+## descriptr: Generate descriptive statistics
 
 **Author:** [Aravind Hebbali](http://www.aravindhebbali.com)<br/>
 **License:**
@@ -13,6 +13,9 @@ Status](https://travis-ci.org/rsquaredacademy/descriptr.svg?branch=master)](http
 [![AppVeyor Build
 Status](https://ci.appveyor.com/api/projects/status/github/rsquaredacademy/descriptr?branch=master&svg=true)](https://ci.appveyor.com/project/rsquaredacademy/descriptr)
 [![](https://cranlogs.r-pkg.org/badges/grand-total/descriptr)](https://cran.r-project.org/package=descriptr)
+[![Coverage
+status](https://codecov.io/gh/rsquaredacademy/descriptr/branch/master/graph/badge.svg)](https://codecov.io/github/rsquaredacademy/descriptr?branch=master)
+![](https://img.shields.io/badge/lifecycle-maturing-blue.svg)
 
 ## Overview
 
@@ -34,14 +37,14 @@ devtools::install_github("rsquaredacademy/descriptr")
 
 ### Descriptive Statistics
 
-  - Summary Statistics
-  - Two Way Tables
-  - One Way Table
-  - One Way Table (Continuous Data)
-  - Group Wise Summary
-  - Multiple Column Descriptive Statistics
-  - Multiple One Way Tables
-  - Multiple Two Way Tables
+  - Summary statistics
+  - Two way tables
+  - One way table
+  - One way table (Continuous Data)
+  - Group wise summary
+  - Multiple variable statistics
+  - Multiple one way tables
+  - Multiple two way tables
 
 ### Explore Distributions
 
@@ -58,9 +61,9 @@ Use `ds_launch_shiny_app()` to explore the package using a shiny app.
 ## Vignettes
 
   - [Descriptive
-    Statistics](http://www.rsquaredacademy.com/descriptr/articles/descriptive-stats.html)
+    Statistics](https://descriptr.rsquaredacademy.com/articles/descriptive-stats.html)
   - [Statistical
-    Distributions](http://www.rsquaredacademy.com/descriptr/articles/distributions.html)
+    Distributions](https://descriptr.rsquaredacademy.com/articles/distributions.html)
 
 ## Usage
 
@@ -170,17 +173,18 @@ ds_cross_table(mtcarz, cyl, gear)
 
 ``` r
 ds_freq_table(mtcarz, cyl)
-#>                                Variable: cyl                                 
-#> |--------------------------------------------------------------------------|
-#> |                                Cumulative                    Cumulative  |
-#> |    Levels    |  Frequency   |   Frequency  |   Percent    |    Percent   |
-#> |--------------------------------------------------------------------------|
-#> |       4      |      11      |      11      |     34.38    |     34.38    |
-#> |--------------------------------------------------------------------------|
-#> |       6      |       7      |      18      |     21.88    |     56.25    |
-#> |--------------------------------------------------------------------------|
-#> |       8      |      14      |      32      |     43.75    |      100     |
-#> |--------------------------------------------------------------------------|
+#>                              Variable: cyl                              
+#> -----------------------------------------------------------------------
+#> Levels     Frequency    Cum Frequency       Percent        Cum Percent  
+#> -----------------------------------------------------------------------
+#>    4          11             11              34.38            34.38    
+#> -----------------------------------------------------------------------
+#>    6           7             18              21.88            56.25    
+#> -----------------------------------------------------------------------
+#>    8          14             32              43.75             100     
+#> -----------------------------------------------------------------------
+#>  Total        32              -             100.00              -      
+#> -----------------------------------------------------------------------
 ```
 
 ##### One Way Table (Continuous Data)
@@ -200,6 +204,8 @@ ds_freq_cont(mtcarz, mpg)
 #> | 24.5 - 29.2 |     2     |      28       |     6.25     |     87.5     |
 #> |-----------------------------------------------------------------------|
 #> | 29.2 - 33.9 |     4     |      32       |     12.5     |     100      |
+#> |-----------------------------------------------------------------------|
+#> |    Total    |    32     |       -       |    100.00    |      -       |
 #> |-----------------------------------------------------------------------|
 ```
 

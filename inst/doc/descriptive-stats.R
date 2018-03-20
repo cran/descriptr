@@ -14,6 +14,9 @@ ds_summary_stats(mtcarz, mpg)
 ## ----cross---------------------------------------------------------------
 ds_cross_table(mtcarz, cyl, gear)
 
+## ----cross_tibble--------------------------------------------------------
+ds_twoway_table(mtcarz, cyl, gear)
+
 ## ----cross_group, fig.width=7, fig.height=7, fig.align='centre'----------
 k <- ds_cross_table(mtcarz, cyl, gear)
 plot(k)
@@ -41,7 +44,11 @@ k <- ds_freq_cont(mtcarz, mpg, 4)
 plot(k)
 
 ## ----gsummary------------------------------------------------------------
-ds_group_summary(mtcarz, cyl, mpg)
+k <- ds_group_summary(mtcarz, cyl, mpg)
+k
+
+## ----gsummary_tibble-----------------------------------------------------
+k$tidy_stats
 
 ## ----gsum_boxplot, fig.width=7, fig.height=7, fig.align='centre'---------
 k <- ds_group_summary(mtcarz, cyl, mpg)

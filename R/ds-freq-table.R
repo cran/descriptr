@@ -1,23 +1,28 @@
-#' @importFrom grDevices topo.colors
-#' @importFrom tibble tibble
-#' @importFrom dplyr pull
-#' @title Frequency Table: Categorical Data
-#' @description \code{ds_freq_table} creates frequency table for factor data and
-#' returns the frequency, cumulative frequency, frequency percent and cumulative
-#' frequency percent. \code{barplot.ds_freq_table} creates bar plot for the
-#' frequency table created using \code{ds_freq_table}
-#' @param data a \code{data.frame} or a \code{tibble}
-#' @param variable column in \code{data}
-#' @param x an object of class \code{ds_freq_table}
-#' @param ... further arguments to be passed to or from methods
+#' Frequency table
+#'
+#' Frequency table for factor data and returns the frequency, cumulative
+#' frequency, frequency percent and cumulative frequency percent.
+#' \code{barplot.ds_freq_table()} creates bar plot for the
+#' frequency table created using \code{ds_freq_table()}.
+#'
+#' @param data A \code{data.frame} or a \code{tibble}.
+#' @param variable Column in \code{data}.
+#' @param x An object of class \code{ds_freq_table}.
+#' @param ... Further arguments to be passed to or from methods.
+#'
 #' @return \code{ds_freq_table} returns an object of class \code{"ds_freq_table"}.
 #' An object of class \code{"ds_freq_table"} is a list containing the
-#' following components
+#' following components:
 #'
-#' \item{ftable}{frequency table}
-#' \item{varname}{name of the data}
-#' @section Deprecated Function:
+#' \item{ftable}{Frequency table.}
+#'
+#' @section Deprecated function:
 #' \code{freq_table()} has been deprecated. Instead use \code{ds_freq_table()}.
+#'
+#' @importFrom grDevices topo.colors
+#' @importFrom tibble tibble
+#' @importFrom dplyr pull last
+#'
 #' @examples
 #' # frequency table
 #' ds_freq_table(mtcarz, cyl)
@@ -25,13 +30,16 @@
 #' # barplot
 #' k <- ds_freq_table(mtcarz, cyl)
 #' plot(k)
-#' @seealso \code{link{ds_freq_cont}} \code{link{ds_cross_table}}
+#'
+#' @seealso \code{\link{ds_freq_cont}} \code{\link{ds_cross_table}}
+#'
 #' @export
 #'
 ds_freq_table <- function(data, variable) UseMethod("ds_freq_table")
 
 #' @export
 ds_freq_table.default <- function(data, variable) {
+
   varyable <- enquo(variable)
 
   fdata <-
@@ -55,7 +63,8 @@ ds_freq_table.default <- function(data, variable) {
   cq <- forcats::fct_unique(fdata)
 
   # count of unique values in the input
-  result <- fdata %>%
+  result <-
+    fdata %>%
     fct_count() %>%
     pull(2)
 
@@ -80,11 +89,35 @@ ds_freq_table.default <- function(data, variable) {
     `Cum Percent` = cum_per
   )
 
+  # missing count
+  na_count <-
+    data %>%
+    pull(!! varyable) %>%
+    is.na() %>%
+    sum()
+
+  if (na_count > 0) {
+    na_freq <-
+      data %>%
+      pull(!! varyable) %>%
+      fct_count() %>%
+      pull(n) %>%
+      last()
+  } else {
+    na_freq <- 0
+  }
+
+  n_obs <-
+    data %>%
+    pull(!! varyable) %>%
+    length()
 
   result <- list(
     ftable = ftable,
     varname = var_name,
-    data = data
+    data = data,
+    na_count = na_freq,
+    n = n_obs
   )
 
   class(result) <- "ds_freq_table"
