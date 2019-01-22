@@ -2,14 +2,14 @@
 % Please edit documentation in R/ds-cross-table.R
 \name{ds_cross_table}
 \alias{ds_cross_table}
-\alias{cross_table}
 \alias{plot.ds_cross_table}
 \alias{ds_twoway_table}
 \title{Two way table}
 \usage{
 ds_cross_table(data, var1, var2)
 
-\method{plot}{ds_cross_table}(x, stacked = FALSE, proportional = FALSE, ...)
+\method{plot}{ds_cross_table}(x, stacked = FALSE, proportional = FALSE,
+  ...)
 
 ds_twoway_table(data, var1, var2)
 }
@@ -33,12 +33,6 @@ as stacked bars, and if \code{TRUE} the columns are portrayed as juxtaposed bars
 Creates two way tables of categorical variables. The tables created can be
 visualized as barplots and mosaicplots.
 }
-\section{Deprecated function}{
-
-\code{ds_cross_table()} has been deprecated. Instead use
-\code{ds_cross_table()}.
-}
-
 \examples{
 k <- ds_cross_table(mtcarz, cyl, gear)
 k

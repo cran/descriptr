@@ -1,13 +1,14 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-## descriptr: Generate descriptive statistics
+# descriptr
 
-**Author:** [Aravind Hebbali](http://www.aravindhebbali.com)<br/>
-**License:**
-[MIT](https://opensource.org/licenses/MIT)
+> Generate descriptive
+statistics
 
-[![CRAN\_Status\_Badge](http://www.r-pkg.org/badges/version/descriptr)](https://cran.r-project.org/package=descriptr)
+[![CRAN\_Status\_Badge](https://www.r-pkg.org/badges/version/descriptr)](https://cran.r-project.org/package=descriptr)
+[![cran
+checks](https://cranchecks.info/badges/summary/descriptr)](https://cran.r-project.org/web/checks/check_results_descriptr.html)
 [![Travis-CI Build
 Status](https://travis-ci.org/rsquaredacademy/descriptr.svg?branch=master)](https://travis-ci.org/rsquaredacademy/descriptr)
 [![AppVeyor Build
@@ -17,53 +18,24 @@ Status](https://ci.appveyor.com/api/projects/status/github/rsquaredacademy/descr
 status](https://codecov.io/gh/rsquaredacademy/descriptr/branch/master/graph/badge.svg)](https://codecov.io/github/rsquaredacademy/descriptr?branch=master)
 ![](https://img.shields.io/badge/lifecycle-maturing-blue.svg)
 
-## Overview
-
-The goal of descriptr is to ease the process of generating descriptive
-statistics and exploring statistical distributions.
-
 ## Installation
 
 ``` r
-# install descriptr from CRAN
+# Install release version from CRAN
 install.packages("descriptr")
 
-# the development version from github
+# Install development version from GitHub
 # install.packages("devtools")
 devtools::install_github("rsquaredacademy/descriptr")
 ```
 
-## Features
+## Articles
 
-### Descriptive Statistics
-
-  - Summary statistics
-  - Two way tables
-  - One way table
-  - One way table (Continuous Data)
-  - Group wise summary
-  - Multiple variable statistics
-  - Multiple one way tables
-  - Multiple two way tables
-
-### Explore Distributions
-
-  - Normal
-  - Binomial
-  - Chi Square
-  - F
-  - t
-
-## Shiny App
-
-Use `ds_launch_shiny_app()` to explore the package using a shiny app.
-
-## Vignettes
-
-  - [Descriptive
-    Statistics](https://descriptr.rsquaredacademy.com/articles/descriptive-stats.html)
-  - [Statistical
-    Distributions](https://descriptr.rsquaredacademy.com/articles/distributions.html)
+  - [Continuous
+    Data](https://descriptr.rsquaredacademy.com/articles/continuous-data.html)
+  - [Categorical
+    Data](https://descriptr.rsquaredacademy.com/articles/categorical-data.html)
+  - [Visualization](https://descriptr.rsquaredacademy.com/articles/visualization.html)
 
 ## Usage
 
@@ -87,10 +59,14 @@ str(mtcarz)
 #>  $ carb: Factor w/ 6 levels "1","2","3","4",..: 4 4 1 1 2 1 4 2 2 4 ...
 ```
 
-##### Summary Statistics
+### Continuous Data
+
+#### Summary Statistics
 
 ``` r
 ds_summary_stats(mtcarz, mpg)
+#> ------------------------------ Variable: mpg ------------------------------
+#> 
 #>                         Univariate Analysis                          
 #> 
 #>  N                       32.00      Variance                36.32 
@@ -130,7 +106,49 @@ ds_summary_stats(mtcarz, mpg)
 #>   17                         14.7        26                         27.3
 ```
 
-##### Two Way Table
+#### Frequency Distribution
+
+``` r
+ds_freq_table(mtcarz, mpg)
+#>                               Variable: mpg                               
+#> |-----------------------------------------------------------------------|
+#> |    Bins     | Frequency | Cum Frequency |   Percent    | Cum Percent  |
+#> |-----------------------------------------------------------------------|
+#> | 10.4 - 15.1 |     6     |       6       |    18.75     |    18.75     |
+#> |-----------------------------------------------------------------------|
+#> | 15.1 - 19.8 |    12     |      18       |     37.5     |    56.25     |
+#> |-----------------------------------------------------------------------|
+#> | 19.8 - 24.5 |     8     |      26       |      25      |    81.25     |
+#> |-----------------------------------------------------------------------|
+#> | 24.5 - 29.2 |     2     |      28       |     6.25     |     87.5     |
+#> |-----------------------------------------------------------------------|
+#> | 29.2 - 33.9 |     4     |      32       |     12.5     |     100      |
+#> |-----------------------------------------------------------------------|
+#> |    Total    |    32     |       -       |    100.00    |      -       |
+#> |-----------------------------------------------------------------------|
+```
+
+### Categorical Data
+
+#### One Way Table
+
+``` r
+ds_freq_table(mtcarz, cyl)
+#>                              Variable: cyl                              
+#> -----------------------------------------------------------------------
+#> Levels     Frequency    Cum Frequency       Percent        Cum Percent  
+#> -----------------------------------------------------------------------
+#>    4          11             11              34.38            34.38    
+#> -----------------------------------------------------------------------
+#>    6           7             18              21.88            56.25    
+#> -----------------------------------------------------------------------
+#>    8          14             32              43.75             100     
+#> -----------------------------------------------------------------------
+#>  Total        32              -             100.00              -      
+#> -----------------------------------------------------------------------
+```
+
+#### Two Way Table
 
 ``` r
 ds_cross_table(mtcarz, cyl, gear)
@@ -169,47 +187,7 @@ ds_cross_table(mtcarz, cyl, gear)
 #> ----------------------------------------------------------------------------
 ```
 
-##### One Way Table
-
-``` r
-ds_freq_table(mtcarz, cyl)
-#>                              Variable: cyl                              
-#> -----------------------------------------------------------------------
-#> Levels     Frequency    Cum Frequency       Percent        Cum Percent  
-#> -----------------------------------------------------------------------
-#>    4          11             11              34.38            34.38    
-#> -----------------------------------------------------------------------
-#>    6           7             18              21.88            56.25    
-#> -----------------------------------------------------------------------
-#>    8          14             32              43.75             100     
-#> -----------------------------------------------------------------------
-#>  Total        32              -             100.00              -      
-#> -----------------------------------------------------------------------
-```
-
-##### One Way Table (Continuous Data)
-
-``` r
-ds_freq_cont(mtcarz, mpg)
-#>                               Variable: mpg                               
-#> |-----------------------------------------------------------------------|
-#> |    Bins     | Frequency | Cum Frequency |   Percent    | Cum Percent  |
-#> |-----------------------------------------------------------------------|
-#> | 10.4 - 15.1 |     6     |       6       |    18.75     |    18.75     |
-#> |-----------------------------------------------------------------------|
-#> | 15.1 - 19.8 |    12     |      18       |     37.5     |    56.25     |
-#> |-----------------------------------------------------------------------|
-#> | 19.8 - 24.5 |     8     |      26       |      25      |    81.25     |
-#> |-----------------------------------------------------------------------|
-#> | 24.5 - 29.2 |     2     |      28       |     6.25     |     87.5     |
-#> |-----------------------------------------------------------------------|
-#> | 29.2 - 33.9 |     4     |      32       |     12.5     |     100      |
-#> |-----------------------------------------------------------------------|
-#> |    Total    |    32     |       -       |    100.00    |      -       |
-#> |-----------------------------------------------------------------------|
-```
-
-##### Group Summary
+### Group Summary
 
 ``` r
 ds_group_summary(mtcarz, cyl, mpg)
@@ -236,19 +214,38 @@ ds_group_summary(mtcarz, cyl, mpg)
 #> -----------------------------------------------------------------------------------------
 ```
 
-##### Multiple Variable Statistics
+#### Multiple Variable Statistics
 
 ``` r
-ds_multi_stats(mtcarz, mpg, disp, hp)
+ds_tidy_stats(mtcarz, mpg, disp, hp)
 #> # A tibble: 3 x 16
 #>   vars    min   max  mean t_mean median  mode range variance  stdev  skew
 #>   <chr> <dbl> <dbl> <dbl>  <dbl>  <dbl> <dbl> <dbl>    <dbl>  <dbl> <dbl>
-#> 1 disp   71.1 472   231    228    196   276   401    15361   124    0.420
-#> 2 hp     52.0 335   147    144    123   110   283     4701    68.6  0.799
+#> 1 disp   71.1 472   231.   228    196.  276.  401.   15361.  124.   0.420
+#> 2 hp     52   335   147.   144.   123   110   283     4701.   68.6  0.799
 #> 3 mpg    10.4  33.9  20.1   20.0   19.2  10.4  23.5     36.3   6.03 0.672
 #> # ... with 5 more variables: kurtosis <dbl>, coeff_var <dbl>, q1 <dbl>,
 #> #   q3 <dbl>, iqrange <dbl>
 ```
+
+## Features
+
+  - Summary statistics
+  - Two way tables
+  - One way table
+  - Group wise summary
+  - Multiple variable statistics
+  - Multiple one way tables
+  - Multiple two way tables
+
+## Getting Help
+
+If you encounter a bug, please file a minimal reproducible example using
+[reprex](https://reprex.tidyverse.org/index.html) on github. For
+questions and clarifications, use
+[StackOverflow](https://stackoverflow.com/).
+
+## Code of Conduct
 
 Please note that this project is released with a [Contributor Code of
 Conduct](CONDUCT.md). By participating in this project you agree to

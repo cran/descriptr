@@ -65,7 +65,7 @@ standardize <- function(x, avg, stdev, p) {
 
 sums <- function(x, q) {
   avg <- mean(x)
-  stdev <- sd(x)
+  stdev <- stats::sd(x)
   result <- sum(sapply(x, standardize, avg, stdev, q))
   return(result)
 }
@@ -86,7 +86,7 @@ md_helper <- function(x, y) {
 #' @export
 #'
 ds_std_error <- function(x) {
-  sd(x) / (length(x) ^ 0.5)
+  stats::sd(x) / (length(x) ^ 0.5)
 }
 
 uss <- function(x, y) {
@@ -205,34 +205,6 @@ fround <- function(x) {
   format(round(x, 2), nsmall = 2)
 }
 
-pol_chi <- function(l1, l2, df, col) {
-  x <- c(l1, seq(l1, l2, 0.01), l2)
-  y <- c(0, dchisq(seq(l1, l2, 0.01), df), 0)
-  polygon(x, y, col = col)
-}
-
-pol_f <- function(l1, l2, num_df, den_df, col) {
-  x <- c(l1, seq(l1, l2, 0.01), l2)
-  y <- c(0, df(seq(l1, l2, 0.01), num_df, den_df), 0)
-  polygon(x, y, col = col)
-}
-
-
-pol_cord <- function(l1, l2, mean, sd, col) {
-  x <- c(l1, seq(l1, l2, 0.01), l2)
-  y <- c(0, dnorm(seq(l1, l2, 0.01), mean, sd), 0)
-  polygon(x, y, col = col)
-}
-
-
-xaxp <- function(mean, el) {
-  xl <- mean - el
-  xu <- mean + el
-  x <- seq(xl, xu, 0.01)
-  return(x)
-}
-
-
 seqlp <- function(mean, sd, el) {
   if (el > 4) {
     lmin <- mean - (el * sd)
@@ -260,29 +232,12 @@ xmmp <- function(mean, sd, el) {
   return(out)
 }
 
-
-xax <- function(mean) {
-  xl <- mean - 3
-  xu <- mean + 3
-  x <- seq(xl, xu, 0.01)
-  return(x)
-}
-
-
 seql <- function(mean, sd) {
   lmin <- mean - (5 * sd)
   lmax <- mean + (5 * sd)
   l <- seq(lmin, lmax, sd)
   return(l)
 }
-
-chiseql <- function(mean, sd) {
-  lmin <- mean - (5 * sd)
-  lmax <- mean + (5 * sd)
-  l <- seq(lmin, lmax, 0.01)
-  return(l)
-}
-
 
 xmm <- function(mean, sd) {
   xmin <- mean - (5 * sd)
@@ -307,60 +262,84 @@ xmn <- function(mean, sd) {
   return(out)
 }
 
-
-pol_t <- function(l1, l2, df, col) {
-  x <- c(l1, seq(l1, l2, 0.01), l2)
-  y <- c(0, dt(seq(l1, l2, 0.01), df), 0)
-  polygon(x, y, col = col)
-}
-
 trimmed_mean <- function(x, na.rm = FALSE) {
   if (na.rm) {
-    x <- na.omit(x)
+    x <- stats::na.omit(x)
   }
   mean(x, trim = 0.05)
 }
 
 quant1 <- function(x, na.rm = FALSE) {
   if (na.rm) {
-    x <- na.omit(x)
+    x <- stats::na.omit(x)
   }
-  quantile(x, probs = 0.25)
+  stats::quantile(x, probs = 0.25)
 }
 
 quant3 <- function(x, na.rm = FALSE) {
   if (na.rm) {
-    x <- na.omit(x)
+    x <- stats::na.omit(x)
   }
-  quantile(x, probs = 0.75)
+  stats::quantile(x, probs = 0.75)
 }
 
-
-# ss <- function(x) {
-#     return(x ^ 2)
-# }
-#
-# fl <- function(x, w) {
-#     x <- as.character(x)
-#     ret <- format(x, width = w, justify = "left")
-#     return(ret)
-# }
-#
-# fc <- function(x, w) {
-#     x <- as.character(x)
-#     ret <- format(x, width = w, justify = "centre")
-#     return(ret)
-# }
-# formatrc <- function(x, w) {
-#     x <- as.character(x)
-#     ret <- format(x, width = w, justify = "right")
-#     return(ret)
-# }
-
-#' @importFrom rlang sym
 string_to_name <- function(x, index = 1) {
   x %>%
-    use_series(varnames) %>%
-    extract(index) %>%
-    sym()
+    magrittr::use_series(varnames) %>%
+    magrittr::extract(index) %>%
+    rlang::sym()
+}
+
+#' @importFrom utils packageVersion menu install.packages
+check_suggests <- function(pkg) {
+  
+  pkg_flag <- tryCatch(utils::packageVersion(pkg), error = function(e) NA)
+  
+  if (is.na(pkg_flag)) {
+    
+    msg <- message(paste0('\n', pkg, ' must be installed for this functionality.'))
+    
+    if (interactive()) {
+      message(msg, "\nWould you like to install it?")
+      if (utils::menu(c("Yes", "No")) == 1) {
+        utils::install.packages(pkg)
+      } else {
+        stop(msg, call. = FALSE)
+      }
+    } else {
+      stop(msg, call. = FALSE)
+    } 
+  }
+
+}
+
+check_df <- function(data) {
+  data_name <- deparse(substitute(data))
+  if (!is.data.frame(data)) {
+    rlang::abort(paste0(data_name, ' must be a `data.frame` or `tibble`.'))
+  }
+}
+
+check_numeric <- function(data, var, var_name) {
+
+  vary      <- rlang::enquo(var)
+  ndata     <- dplyr::pull(data, !! vary)
+  var_class <- class(ndata)
+
+  msg <- paste0(var_name, ' is not a continuous variable. The function expects an object of type `numeric` or `integer` but ', var_name, ' is of type `', var_class, '`.')
+  if (!is.numeric(ndata)) {
+    rlang::abort(msg)
+  }
+}
+
+check_factor <- function(data, var, var_name) {
+
+  vary      <- rlang::enquo(var)
+  fdata     <- dplyr::pull(data, !! vary)
+  var_class <- class(fdata)
+  
+  msg <- paste0(var_name, ' is not a categorical variable. The function expects an object of type `factor` but ', var_name, ' is of type `', var_class, '`.')
+  if (!is.factor(fdata)) {
+    rlang::abort(msg)
+  }
 }

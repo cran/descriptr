@@ -4,7 +4,7 @@
 #' missing values. \code{plot.ds_screener()} creates bar plots to visualize %
 #' of missing observations for each variable in a data set.
 #'
-#' @param y A \code{tibble} or a \code{data.frame}.
+#' @param data A \code{tibble} or a \code{data.frame}.
 #' @param x An object of class \code{ds_screener}.
 #' @param ... Further arguments to be passed to or from methods.
 #'
@@ -28,69 +28,78 @@
 #' \item{MissingCols}{Total number of columns with missing observations in the
 #' data frame.}
 #'
-#' @section Deprecated function:
-#' \code{screener()} has been deprecated. Instead
-#' use \code{ds_screener()}.
-#'
-#' @importFrom graphics legend
-#' @importFrom stats complete.cases
-#'
 #' @examples
 #' # screen data
 #' ds_screener(mtcarz)
 #'
 #' @export
 #'
-ds_screener <- function(y) UseMethod("ds_screener")
+ds_screener <- function(data) UseMethod("ds_screener")
 
 #' @export
 #'
-ds_screener.default <- function(y) {
-  if (!is.data.frame(y)) {
-    stop("y must be a data frame")
-  }
+ds_screener.default <- function(data) {
+  
+  check_df(data)
 
-  rows <- nrow(y)
-  cols <- ncol(y)
-  varnames <- names(sapply(y, colnames))
-  datatype <- sapply(y, class)
-  counts <- sapply(y, length)
-  nlev <- lapply(y, nlevels)
-  lev <- lapply(y, levels)
+  rows     <- nrow(data)
+  cols     <- ncol(data)
+  varnames <- names(data)
+  datatype <- purrr::map_chr(data, class)
+  counts   <- purrr::map_int(data, length)
+  nlev     <- purrr::map(data, nlevels)
+  lev      <- purrr::map(data, levels)
+  
   for (i in seq_len(length(lev))) {
     if (is.null(lev[[i]])) {
       lev[[i]] <- NA
     }
   }
-  mvalues <- sapply(y, function(z) sum(is.na(z)))
-  mvaluesper <- round((mvalues / counts) * 100, 2)
+  
+  mvalues    <- purrr::map_int(data, function(z) sum(is.na(z)))
+  
+  mvaluesper <- 
+    mvalues %>%
+      magrittr::divide_by(counts) %>%
+      magrittr::multiply_by(100) %>%
+      round(2)
+  
+  mtotal <- 
+    data %>%
+    is.na() %>%
+    sum()
+  
+  mtotalper <- 
+    mtotal %>%
+    magrittr::divide_by(sum(counts)) %>%
+    magrittr::multiply_by(100) %>%
+    round(2)
 
-  mtotal <- sum(is.na(y))
-  mtotalper <- round((mtotal / sum(counts)) * 100, 2)
-  mrows <- sum(!complete.cases(y))
+  mrows <- 
+    data %>%
+    stats::complete.cases() %>%
+    `!` %>%
+    sum()
+
   mcols <- sum(mvalues != 0)
 
-  result <- list(
-    Rows = rows, Columns = cols, Variables = varnames,
-    Types = datatype, Count = counts, nlevels = nlev,
-    levels = lev, Missing = mvalues,
-    MissingPer = mvaluesper, MissingTotal = mtotal,
-    MissingTotPer = mtotalper, MissingRows = mrows,
-    MissingCols = mcols
-  )
+  result <- list(Rows          = rows, 
+                 Columns       = cols, 
+                 Variables     = varnames,
+                 Types         = datatype, 
+                 Count         = counts, 
+                 nlevels       = nlev,
+                 levels        = lev, 
+                 Missing       = mvalues,
+                 MissingPer    = mvaluesper, 
+                 MissingTotal  = mtotal,
+                 MissingTotPer = mtotalper, 
+                 MissingRows   = mrows,
+                 MissingCols   = mcols)
 
   class(result) <- "ds_screener"
 
   return(result)
-}
-
-#' @export
-#' @rdname ds_screener
-#' @usage NULL
-#'
-screener <- function(y) {
-  .Deprecated("ds_screener()")
-  ds_screener(y)
 }
 
 #' @export
@@ -104,18 +113,27 @@ print.ds_screener <- function(x, ...) {
 #' @export
 #'
 plot.ds_screener <- function(x, ...) {
-  dat <- x$MissingPer
+
+  dat  <- x$MissingPer
   ymax <- max(dat) * 1.5
   cols <- c("green", "red")[(dat > 10) + 1]
-  h <- barplot(
-    dat, main = "Missing Values (%)",
-    xlab = "Column Names", ylab = "Percentage",
-    col = cols, ylim = c(0, ymax)
-  )
-  legend(
-    "top", legend = c("> 10%", "<= 10%"), fill = c("red", "green"),
-    horiz = TRUE, title = "% Missing", cex = 0.5, text.width = 0.7
-  )
+
+  h <- graphics::barplot(dat, 
+               main = "Missing Values (%)",
+               xlab = "Column Names", 
+               ylab = "Percentage",
+               col  = cols, 
+               ylim = c(0, ymax))
+
+  graphics::legend("top", 
+          legend     = c("> 10%", "<= 10%"), 
+          fill       = c("red", "green"),
+          horiz      = TRUE, 
+          title      = "% Missing", 
+          cex        = 0.5, 
+          text.width = 0.7)
+
   line_data <- cbind(h, as.vector(dat))
-  text(line_data[, 1], line_data[, 2] + 2, as.vector(dat))
+  graphics::text(line_data[, 1], line_data[, 2] + 2, as.vector(dat))
+
 }

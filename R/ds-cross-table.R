@@ -12,13 +12,6 @@
 #' @param proportional If \code{TRUE}, the height of the bars is proportional.
 #' @param ... Further arguments to be passed to or from methods.
 #'
-#' @section Deprecated function:
-#' \code{ds_cross_table()} has been deprecated. Instead use
-#' \code{ds_cross_table()}.
-#'
-#' @importFrom graphics barplot mosaicplot
-#' @importFrom grDevices rainbow
-#'
 #' @examples
 #' k <- ds_cross_table(mtcarz, cyl, gear)
 #' k
@@ -38,55 +31,49 @@ ds_cross_table <- function(data, var1, var2) UseMethod("ds_cross_table")
 #' @export
 ds_cross_table.default <- function(data, var1, var2) {
 
-  var_1 <- enquo(var1)
-  var_2 <- enquo(var2)
+  check_df(data)
+  var1_name <- deparse(substitute(var1))
+  var2_name <- deparse(substitute(var2))
+  var_1 <- rlang::enquo(var1)
+  var_2 <- rlang::enquo(var2)
+  check_factor(data, !! var_1, var1_name)
+  check_factor(data, !! var_2, var2_name)
 
   var_names <-
     data %>%
-    select(!! var_1, !! var_2) %>%
+    dplyr::select(!! var_1, !! var_2) %>%
     names()
 
-  varone <-
-    data %>%
-    pull(!! var_1)
+  varone   <- dplyr::pull(data, !! var_1)
+  vartwo   <- dplyr::pull(data, !! var_2)
+  row_name <- get_names(varone)
+  col_name <- get_names(vartwo)
 
-  vartwo <-
-    data %>%
-    pull(!! var_2)
-
-  x <- as.matrix(table(varone, vartwo))
-  rownames(x) <- NULL
+  x <- 
+    table(varone, vartwo) %>%
+    as.matrix() %>%
+    magrittr::set_rownames(NULL)
+  
   n <- sum(x)
-  if (is.factor(varone)) {
-    row_name <- levels(varone)
-  } else {
-    row_name <- unique(sort(varone))
-  }
-  per_mat <- round(x / n, 3)
-  row_pct <- apply(per_mat, 1, sum)
-  col_pct <- apply(per_mat, 2, sum)
-  per_mat <- cbind(per_mat, row_pct)
-  per_mat <- suppressWarnings(rbind(per_mat, col_pct))
-  d <- dim(per_mat)
-  per_mat[d[1], d[2]] <- 1
+  
+  per_mat <- 
+    x %>%
+    magrittr::divide_by(n) %>%
+    round(3)
+
+  row_pct  <- apply(per_mat, 1, sum)
+  col_pct  <- apply(per_mat, 2, sum)
   rowtotal <- apply(x, 1, sum)
   coltotal <- apply(x, 2, sum)
-  rcent <- row_pct(x, rowtotal)
-  rcent <- cbind(rcent, row_pct)
-  rcent <- apply(rcent, c(1, 2), rounda)
-  ccent <- col_pct(x, coltotal)
-  ccent <- apply(ccent, c(1, 2), rounda)
-  x <- cbind(x, rowtotal)
-  x <- cbind(unname(row_name), x)
-  if (is.factor(vartwo)) {
-    col_name <- levels(vartwo)
-  } else {
-    col_name <- unique(sort(vartwo))
-  }
+  finalmat <- prep_per_mat(per_mat, row_pct, col_pct)  
+  rcent    <- prep_rcent(x, rowtotal, row_pct)
+  ccent    <- prep_ccent(x, coltotal)
+  finaltab <- prep_table(x, rowtotal, row_name)
+  
 
   result <- list(
     obs = n, var2_levels = col_name, var1_levels = row_name, varnames = var_names,
-    twowaytable = x, percent_table = per_mat, row_percent = rcent, column_percent = ccent,
+    twowaytable = finaltab, percent_table = finalmat, row_percent = rcent, column_percent = ccent,
     column_totals = coltotal, percent_column = col_pct, data = data
   )
 
@@ -96,72 +83,59 @@ ds_cross_table.default <- function(data, var1, var2) {
 }
 
 #' @export
-#' @rdname ds_cross_table
-#' @usage NULL
-#'
-cross_table <- function(var1, var2) {
-  .Deprecated("ds_cross_table()")
-}
-
-#' @export
 print.ds_cross_table <- function(x, ...) {
   print_cross(x)
 }
 
-
-#' @importFrom ggplot2 ggplot aes geom_bar xlab ggtitle labs scale_y_continuous
-#' @importFrom tibble as_tibble
-#' @importFrom scales percent_format
-#' @importFrom magrittr extract
 #' @export
 #' @rdname ds_cross_table
 #'
 plot.ds_cross_table <- function(x, stacked = FALSE, proportional = FALSE, ...) {
+
   x_lab <-
     x %>%
-    use_series(varnames) %>%
-    extract(1)
+    magrittr::use_series(varnames) %>%
+    magrittr::extract(1)
 
   y_lab <-
     x %>%
-    use_series(varnames) %>%
-    extract(2)
+    magrittr::use_series(varnames) %>%
+    magrittr::extract(2)
 
   k <- string_to_name(x)
   j <- string_to_name(x, 2)
 
-  # proportional stacked bar plots
   if (proportional) {
     p <-
       x %>%
-      use_series(data) %>%
-      select(x = !! k, y = !! j) %>%
+      magrittr::use_series(data) %>%
+      dplyr::select(x = !! k, y = !! j) %>%
       table() %>%
-      as_tibble() %>%
-      ggplot(aes(x = x, y = n, fill = y)) +
-      geom_bar(stat = "identity", position = "fill") +
-      scale_y_continuous(labels = percent_format()) +
-      xlab(x_lab) + ggtitle(paste(x_lab, "vs", y_lab)) +
-      labs(fill = y_lab)
+      tibble::as_tibble() %>%
+      ggplot2::ggplot(ggplot2::aes(x = x, y = n, fill = y)) +
+      ggplot2::geom_bar(stat = "identity", position = "fill") +
+      ggplot2::scale_y_continuous(labels = scales::percent_format()) +
+      ggplot2::xlab(x_lab) + ggplot2::ggtitle(paste(x_lab, "vs", y_lab)) +
+      ggplot2::labs(fill = y_lab)
   } else {
     if (stacked) {
       p <-
         x %>%
-        use_series(data) %>%
-        select(x = !! k, y = !! j) %>%
-        ggplot() +
-        geom_bar(aes(x, fill = y), position = "stack") +
-        xlab(x_lab) + ggtitle(paste(x_lab, "vs", y_lab)) +
-        labs(fill = y_lab)
+        magrittr::use_series(data) %>%
+        dplyr::select(x = !! k, y = !! j) %>%
+        ggplot2::ggplot() +
+        ggplot2::geom_bar(ggplot2::aes(x, fill = y), position = "stack") +
+        ggplot2::xlab(x_lab) + ggplot2::ggtitle(paste(x_lab, "vs", y_lab)) +
+        ggplot2::labs(fill = y_lab)
     } else {
       p <-
         x %>%
-        use_series(data) %>%
-        select(x = !! k, y = !! j) %>%
-        ggplot() +
-        geom_bar(aes(x, fill = y), position = "dodge") +
-        xlab(x_lab) + ggtitle(paste(x_lab, "vs", y_lab)) +
-        labs(fill = y_lab)
+        magrittr::use_series(data) %>%
+        dplyr::select(x = !! k, y = !! j) %>%
+        ggplot2::ggplot() +
+        ggplot2::geom_bar(ggplot2::aes(x, fill = y), position = "dodge") +
+        ggplot2::xlab(x_lab) + ggplot2::ggtitle(paste(x_lab, "vs", y_lab)) +
+        ggplot2::labs(fill = y_lab)
     }
   }
 
@@ -170,55 +144,107 @@ plot.ds_cross_table <- function(x, stacked = FALSE, proportional = FALSE, ...) {
   invisible(result)
 }
 
-#' @importFrom dplyr summarise tally ungroup mutate inner_join
 #' @importFrom magrittr %<>%
 #' @rdname ds_cross_table
 #' @export
 #'
 ds_twoway_table <- function(data, var1, var2) {
 
-  var_1 <- enquo(var1)
-  var_2 <- enquo(var2)
+  check_df(data)
+  var1_name <- deparse(substitute(var1))
+  var2_name <- deparse(substitute(var2))
+  
+  var_1 <- rlang::enquo(var1)
+  var_2 <- rlang::enquo(var2)
+  check_factor(data, !! var_1, var1_name)
+  check_factor(data, !! var_2, var2_name)
 
   group <-
     data %>%
-    select(!! var_1, !! var_2) %>%
-    drop_na() %>%
-    group_by(!! var_1, !! var_2) %>%
-    summarise(count = n())
+    dplyr::select(!! var_1, !! var_2) %>%
+    tidyr::drop_na() %>%
+    dplyr::group_by(!! var_1, !! var_2) %>%
+    dplyr::summarise(count = dplyr::n())
 
   total <-
     group %>%
-    pull(count) %>%
+    dplyr::pull(count) %>%
     sum()
 
   div_by <-
     data %>%
-    group_by(!! var_2) %>%
-    drop_na() %>%
-    tally() %>%
-    pull(n)
+    dplyr::group_by(!! var_2) %>%
+    tidyr::drop_na() %>%
+    dplyr::tally() %>%
+    dplyr::pull(n)
 
 
   group2 <-
     data %>%
-    select(!! var_1, !! var_2) %>%
-    drop_na() %>%
-    group_by(!! var_2, !! var_1) %>%
-    summarise(count = n()) %>%
-    mutate(
+    dplyr::select(!! var_1, !! var_2) %>%
+    tidyr::drop_na() %>%
+    dplyr::group_by(!! var_2, !! var_1) %>%
+    dplyr::summarise(count = dplyr::n()) %>%
+    dplyr::mutate(
       col_percent = count / sum(count)
     ) %>%
-    ungroup()
+    dplyr::ungroup()
 
   group %<>%
-    mutate(
+    dplyr::mutate(
       percent     = count / total,
       row_percent = count / sum(count)
     ) %>%
-    ungroup()
+    dplyr::ungroup()
 
-  result <- inner_join(group, group2)
+  result <- dplyr::inner_join(group, group2)
   return(result)
+
+}
+
+get_names <- function(x) {
+  
+  if (is.factor(x)) {
+    varname <- levels(x)
+  } else {
+    varname <- 
+      x %>%
+      sort() %>%
+      unique()
+  }
+  
+  return(varname)
+  
+}
+
+prep_table <- function(x, rowtotal, row_name) {
+
+  x1 <- cbind(x, rowtotal)
+  cbind(unname(row_name), x1)
+
+}
+
+prep_per_mat <- function(per_mat, row_pct, col_pct) {
+
+  per_mat_1             <- cbind(per_mat, row_pct)
+  per_mat_2             <- suppressWarnings(rbind(per_mat_1, col_pct))
+  d                     <- dim(per_mat_2)
+  per_mat_2[d[1], d[2]] <- 1
+  return(per_mat_2)
+
+}
+
+prep_rcent <- function(x, rowtotal, row_pct) {
+
+  rcent_1 <- row_pct(x, rowtotal)
+  rcent_2 <- cbind(rcent_1, row_pct)
+  apply(rcent_2, c(1, 2), rounda)
+
+}
+
+prep_ccent <- function(x, coltotal) {
+
+  ccent_1 <- col_pct(x, coltotal)
+  apply(ccent_1, c(1, 2), rounda)
 
 }

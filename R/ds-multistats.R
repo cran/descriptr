@@ -1,45 +1,55 @@
-#' Multiple variable statistics
+#' Tidy descriptive statistics
 #'
 #' Descriptive statistics for multiple variables.
 #'
-#' @param x A \code{tibble} or a \code{data.frame}.
+#' @param data A \code{tibble} or a \code{data.frame}.
 #' @param ... Columns in \code{x}.
 #'
 #' @return A tibble.
 #'
-#' @section Deprecated function:
-#' \code{multistats()} has been deprecated. Instead use \code{ds_multi_stats()}
-#'
-#' @importFrom rlang quos
-#' @importFrom tidyr gather
-#' @importFrom dplyr group_by summarise_all funs
-#'
 #' @examples
-#' ds_multi_stats(mtcarz, mpg, disp, hp)
+#' ds_tidy_stats(mtcarz)
+#' ds_tidy_stats(mtcarz, mpg, disp, hp)
+#'
+#' @section Deprecated Functions:
+#' \code{ds_multi_stats()} have been deprecated. Instead use \code{ds_tidy_stats()}.
 #'
 #' @export
 #'
-ds_multi_stats <- function(x, ...) {
+ds_tidy_stats <- function(data, ...) {
 
-  vars <- quos(...)
+  check_df(data)
 
-  x %>%
-    select(!!! vars) %>%
-    gather(vars, values) %>%
-    group_by(vars) %>%
-    summarise_all(funs(
+  vars <- rlang::quos(...)
+
+  if (length(vars) < 1) {
+    is_num <- sapply(data, is.numeric)
+    if (!any(is_num == TRUE)) {
+      rlang::abort("Data has no continuous variables.")
+    }
+    data <- data[, is_num]
+  } else {
+    data %<>%
+      dplyr::select(!!! vars)
+  }
+
+  data %>%
+    tidyr::drop_na() %>%
+    tidyr::gather(vars, values) %>%
+    dplyr::group_by(vars) %>%
+    dplyr::summarise_all(dplyr::funs(
       min = min, max = max, mean = mean, t_mean = trimmed_mean,
-      median = median, mode = ds_mode, range = ds_range, variance = var,
-      stdev = sd, skew = ds_skewness, kurtosis = ds_kurtosis,
-      coeff_var = ds_cvar, q1 = quant1, q3 = quant3, iqrange = IQR),
+      median = stats::median, mode = ds_mode, range = ds_range, variance = stats::var,
+      stdev = stats::sd, skew = ds_skewness, kurtosis = ds_kurtosis,
+      coeff_var = ds_cvar, q1 = quant1, q3 = quant3, iqrange = stats::IQR),
       na.rm = TRUE)
 }
 
 #' @export
-#' @rdname ds_multi_stats
+#' @rdname ds_tidy_stats
 #' @usage NULL
 #'
-multistats <- function(x, ...) {
-  .Deprecated("ds_multi_stats()")
-  ds_multi_stats(x, ...)
+ds_multi_stats <- function(data, ...) {
+  .Deprecated("ds_tidy_stats()")
+  ds_tidy_stats(data, ...)
 }

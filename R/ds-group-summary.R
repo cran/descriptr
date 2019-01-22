@@ -20,13 +20,6 @@
 #' levels of the factor variable.}
 #' \item{plotdata}{Data for boxplot method.}
 #'
-#' @section Deprecated function:
-#' \code{ds_group_summary()} has been deprecated. Instead
-#' use \code{ds_group_summary()}.
-#'
-#' @importFrom stats median sd var IQR
-#' @importFrom graphics boxplot
-#'
 #' @examples
 #' # ds_group summary
 #' ds_group_summary(mtcarz, cyl, mpg)
@@ -48,47 +41,37 @@ ds_group_summary <- function(data, gvar, cvar) UseMethod("ds_group_summary")
 #'
 ds_group_summary.default <- function(data, gvar, cvar) {
 
-  g_var <- enquo(gvar)
-  c_var <- enquo(cvar)
+  check_df(data)
+  gvar_name <- deparse(substitute(gvar))
+  cvar_name <- deparse(substitute(cvar))
 
-  gvar <-
-    data %>%
-    pull(!! g_var)
+  g_var <- rlang::enquo(gvar)
+  c_var <- rlang::enquo(cvar)
 
-  cvar <-
-    data %>%
-    pull(!! c_var)
+  check_numeric(data, !! c_var, cvar_name)
+  check_factor(data, !! g_var, gvar_name)
 
-  if (!is.factor(gvar)) {
-    stop("gvar must be an object of type factor")
-  }
-
-  if (!is.numeric(cvar)) {
-    stop("cvar must be numeric")
-  }
-
-  if (length(gvar) != length(cvar)) {
-    stop("gvar and cvar must be of the same length")
-  }
+  gvar  <- dplyr::pull(data, !! g_var)
+  cvar  <- dplyr::pull(data, !! c_var)
 
   xname <-
     data %>%
-    select(!! g_var) %>%
+    dplyr::select(!! g_var) %>%
     names()
 
   yname <-
     data %>%
-    select(!! c_var) %>%
+    dplyr::select(!! c_var) %>%
     names()
 
 
   split_dat <- tapply(cvar, list(gvar), function(gvar) {
     c(
       length(gvar), min(gvar), max(gvar), mean(gvar),
-      median(gvar), ds_mode(gvar), sd(gvar), var(gvar),
+      stats::median(gvar), ds_mode(gvar), stats::sd(gvar), stats::var(gvar),
       ds_skewness(gvar), ds_kurtosis(gvar), stat_uss(gvar),
       ds_css(gvar), ds_cvar(gvar), ds_std_error(gvar),
-      ds_range(gvar), IQR(gvar)
+      ds_range(gvar), stats::IQR(gvar)
     )
   })
 
@@ -101,32 +84,30 @@ ds_group_summary.default <- function(data, gvar, cvar) {
     "Std. Error Mean", "Range", "Interquartile Range"
   )
 
-  out <- data.frame(rnames, splito)
-  names(out) <- c("Statistic/Levels", levels(gvar))
-
-  plot_data <- data.frame(gvar, cvar)
+  out              <- data.frame(rnames, splito)
+  names(out)       <- c("Statistic/Levels", levels(gvar))
+  plot_data        <- data.frame(gvar, cvar)
   names(plot_data) <- c(xname, yname)
 
   tidystats <-
     data %>%
-    select(!! g_var, !! c_var) %>%
-    drop_na() %>%
-    group_by(!! g_var) %>%
-    summarise(length = length(!! c_var), min = min(!! c_var),
+    dplyr::select(!! g_var, !! c_var) %>%
+    tidyr::drop_na() %>%
+    dplyr::group_by(!! g_var) %>%
+    dplyr::summarise(length = length(!! c_var), min = min(!! c_var),
               max = max(!! c_var), mean  = mean(!! c_var),
-              median= median(!! c_var), mode = ds_mode(!! c_var),
-              sd = sd(!! c_var), variance = var(!! c_var),
+              median= stats::median(!! c_var), mode = ds_mode(!! c_var),
+              sd = stats::sd(!! c_var), variance = stats::var(!! c_var),
               skewness = ds_skewness(!! c_var), kurtosis = ds_kurtosis(!! c_var),
               coeff_var = ds_cvar(!! c_var), std_error = ds_std_error(!! c_var),
-              range = ds_range(!! c_var), iqr = IQR(!! c_var))
+              range = ds_range(!! c_var), iqr = stats::IQR(!! c_var))
 
-  result <- list(
-    stats = out,
-    tidy_stats = tidystats,
-    plotdata = plot_data,
-    xvar = xname,
-    yvar = yname,
-    data = data
+  result <- list(stats      = out,
+                 tidy_stats = tidystats,
+                 plotdata   = plot_data,
+                 xvar       = xname,
+                 yvar       = yname,
+                 data       = data
   )
 
   class(result) <- "ds_group_summary"
@@ -134,52 +115,40 @@ ds_group_summary.default <- function(data, gvar, cvar) {
 }
 
 #' @export
-#' @rdname ds_group_summary
-#' @usage NULL
-#'
-group_summary <- function(fvar, cvar) {
-  .Deprecated("ds_group_summary()")
-}
-
-#' @export
 print.ds_group_summary <- function(x, ...) {
   print_group(x)
 }
 
-#' @importFrom ggplot2 geom_boxplot
 #' @rdname ds_group_summary
 #' @export
 #'
 plot.ds_group_summary <- function(x, ...) {
-  x_lab <-
-    x %>%
-    use_series(xvar)
 
-  y_lab <-
-    x %>%
-    use_series(yvar)
+  x_lab <- magrittr::use_series(x, xvar)
+  y_lab <- magrittr::use_series(x, yvar)
 
   k <-
     x %>%
-    use_series(xvar) %>%
-    sym()
+    magrittr::use_series(xvar) %>%
+    rlang::sym()
 
   j <-
     x %>%
-    use_series(yvar) %>%
-    sym()
+    magrittr::use_series(yvar) %>%
+    rlang::sym()
 
   p <-
     x %>%
-    use_series(data) %>%
-    select(x = !! k, y = !! j) %>%
-    ggplot() +
-    geom_boxplot(aes(x = x, y = y), fill = "blue") +
-    xlab(x_lab) + ylab(y_lab) +
-    ggtitle(paste(y_lab, "by", x_lab))
+    magrittr::use_series(data) %>%
+    dplyr::select(x = !! k, y = !! j) %>%
+    ggplot2::ggplot() +
+    ggplot2::geom_boxplot(ggplot2::aes(x = x, y = y), fill = "blue") +
+    ggplot2::xlab(x_lab) + ggplot2::ylab(y_lab) +
+    ggplot2::ggtitle(paste(y_lab, "by", x_lab))
 
   print(p)
 
   result <- list(plot = p)
   invisible(result)
+  
 }
