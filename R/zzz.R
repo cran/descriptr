@@ -5,8 +5,8 @@
   if (!interactive() || stats::runif(1) > 0.1) return()
 
   pkgs <- utils::available.packages()
-  
-  cran_version <- 
+
+  cran_version <-
     pkgs %>%
     magrittr::extract("descriptr", "Version") %>%
     package_version()
@@ -23,10 +23,16 @@
 
   tip <- sample(tips, 1)
 
-  if (behind_cran) {
-    packageStartupMessage("A new version of descriptr is available with bug fixes and new features.")
-  } else {
-    packageStartupMessage(paste(strwrap(tip), collapse = "\n"))
-  }   
+  if (interactive()) {
+    if (behind_cran) {
+      msg <- c("A new version of descriptr is available with bug fixes and new features.")
+      packageStartupMessage(msg, "\nWould you like to install it?")
+      if (utils::menu(c("Yes", "No")) == 1) {
+        utils::update.packages("descriptr")
+      }
+    } else {
+      packageStartupMessage(paste(strwrap(tip), collapse = "\n"))
+    }
+  }
 
 }

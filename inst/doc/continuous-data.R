@@ -44,6 +44,9 @@ plot(k)
 ## ----auto-group-summary--------------------------------------------------
 ds_auto_group_summary(mtcarz, cyl, gear, mpg)
 
+## ----interact-summary----------------------------------------------------
+ds_group_summary_interact(mtcarz, mpg, cyl, gear)
+
 ## ----multistats----------------------------------------------------------
 ds_tidy_stats(mtcarz, mpg, disp, hp)
 
