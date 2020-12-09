@@ -1,3 +1,30 @@
+# descriptr 0.5.2
+
+This is a patch release to fix CRAN notification about vdiffr package 
+and remove deprecated functions related to visualization of 
+statistical distributions.
+
+## Defunct
+
+The following functions are defunct. Please use the **vistributions**
+package for visualizing distributions.
+
+- `dist_binom_plot()`
+- `dist_binom_prob()`
+- `dist_binom_perc()`
+- `dist_chisquare_plot()` 
+- `dist_chisquare_perc()` 
+- `dist_chisquare_prob()`
+- `dist_normal_plot()` 
+- `dist_normal_perc()` 
+- `dist_normal_prob()`
+- `dist_f_plot()` 
+- `dist_f_perc()` 
+- `dist_f_prob()`
+- `dist_t_plot()` 
+- `dist_t_perc()` 
+- `dist_t_prob()`
+
 # descriptr 0.5.1
 
 This is a patch release to fix CRAN errors.
