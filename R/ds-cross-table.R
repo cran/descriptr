@@ -1,11 +1,11 @@
 #' Two way table
 #'
 #' Creates two way tables of categorical variables. The tables created can be
-#' visualized as barplots and mosaicplots.
+#' visualized as bar plots and mosaic plots.
 #'
 #' @param data A \code{data.frame} or a \code{tibble}.
-#' @param var1 First categorical variable.
-#' @param var2 Second categorical variable.
+#' @param var_1 First categorical variable.
+#' @param var_2 Second categorical variable.
 #' @param x An object of class \code{cross_table}.
 #' @param stacked If \code{FALSE}, the columns of height are portrayed
 #' as stacked bars, and if \code{TRUE} the columns are portrayed as juxtaposed bars.
@@ -14,29 +14,34 @@
 #' @param ... Further arguments to be passed to or from methods.
 #'
 #' @examples
+#' # cross table
 #' k <- ds_cross_table(mtcarz, cyl, gear)
 #' k
 #'
-#' # bar plots
+#' # bar plot
 #' plot(k)
+#'
+#' # stacked bar plot
 #' plot(k, stacked = TRUE)
+#'
+#' # proportional bar plot
 #' plot(k, proportional = TRUE)
 #'
-#' # alternate
+#' # returns tibble
 #' ds_twoway_table(mtcarz, cyl, gear)
 #'
 #' @export
 #'
-ds_cross_table <- function(data, var1, var2) UseMethod("ds_cross_table")
+ds_cross_table <- function(data, var_1, var_2) UseMethod("ds_cross_table")
 
 #' @export
-ds_cross_table.default <- function(data, var1, var2) {
+ds_cross_table.default <- function(data, var_1, var_2) {
 
   check_df(data)
-  var1_name <- deparse(substitute(var1))
-  var2_name <- deparse(substitute(var2))
-  var_1 <- rlang::enquo(var1)
-  var_2 <- rlang::enquo(var2)
+  var1_name <- deparse(substitute(var_1))
+  var2_name <- deparse(substitute(var_2))
+  var_1 <- rlang::enquo(var_1)
+  var_2 <- rlang::enquo(var_2)
   check_factor(data, !! var_1, var1_name)
   check_factor(data, !! var_2, var2_name)
 
@@ -50,18 +55,11 @@ ds_cross_table.default <- function(data, var1, var2) {
   row_name <- get_names(varone)
   col_name <- get_names(vartwo)
 
-  x <-
-    table(varone, vartwo) %>%
-    as.matrix() %>%
-    magrittr::set_rownames(NULL)
+  x <- as.matrix(table(varone, vartwo))
+  rownames(x) <- NULL
 
-  n <- sum(x)
-
-  per_mat <-
-    x %>%
-    magrittr::divide_by(n) %>%
-    round(3)
-
+  n        <- sum(x)
+  per_mat  <- round(x / n, 3)
   row_pct  <- apply(per_mat, 1, sum)
   col_pct  <- apply(per_mat, 2, sum)
   rowtotal <- apply(x, 1, sum)
@@ -71,13 +69,23 @@ ds_cross_table.default <- function(data, var1, var2) {
   ccent    <- prep_ccent(x, coltotal)
   finaltab <- prep_table(x, rowtotal, row_name)
 
+  utility <- list(obs            = n,
+                  var2_levels    = col_name,
+                  var1_levels    = row_name,
+                  varnames       = var_names,
+                  twowaytable    = finaltab,
+                  percent_table  = finalmat,
+                  row_percent    = rcent,
+                  column_percent = ccent,
+                  column_totals  = coltotal,
+                  percent_column = col_pct,
+                  data           = data)
 
-  result <- list(
-    obs = n, var2_levels = col_name, var1_levels = row_name, varnames = var_names,
-    twowaytable = finaltab, percent_table = finalmat, row_percent = rcent, column_percent = ccent,
-    column_totals = coltotal, percent_column = col_pct, data = data
-  )
+  ftab <- table(varone, vartwo)
+  names(dimnames(ftab)) <- c(var_names[1], var_names[2])
 
+  result <- list(ftable  = ftab,
+                 utility = utility)
 
   class(result) <- "ds_cross_table"
   return(result)
@@ -96,13 +104,15 @@ plot.ds_cross_table <- function(x, stacked = FALSE, proportional = FALSE,
 
   x_lab <-
     x %>%
-    magrittr::use_series(varnames) %>%
-    magrittr::extract(1)
+    use_series(utility) %>%
+    use_series(varnames) %>%
+    extract(1)
 
   y_lab <-
     x %>%
-    magrittr::use_series(varnames) %>%
-    magrittr::extract(2)
+    use_series(utility) %>%
+    use_series(varnames) %>%
+    extract(2)
 
   k <- string_to_name(x)
   j <- string_to_name(x, 2)
@@ -110,34 +120,38 @@ plot.ds_cross_table <- function(x, stacked = FALSE, proportional = FALSE,
   if (proportional) {
     p <-
       x %>%
-      magrittr::use_series(data) %>%
+      use_series(utility) %>%
+      use_series(data) %>%
       dplyr::select(x = !! k, y = !! j) %>%
       table() %>%
-      tibble::as_tibble() %>%
-      ggplot2::ggplot(ggplot2::aes(x = x, y = n, fill = y)) +
-      ggplot2::geom_bar(stat = "identity", position = "fill") +
-      ggplot2::scale_y_continuous(labels = scales::percent_format()) +
-      ggplot2::xlab(x_lab) + ggplot2::ggtitle(paste(x_lab, "vs", y_lab)) +
-      ggplot2::labs(fill = y_lab)
+      as.data.frame() %>%
+      set_colnames(c("x", "y", "n")) %>%
+      ggplot(aes(x = x, y = n, fill = y)) +
+      geom_bar(stat = "identity", position = "fill") +
+      scale_y_continuous(labels = scales::percent_format()) +
+      xlab(x_lab) + ggtitle(paste(x_lab, "vs", y_lab)) +
+      labs(fill = y_lab)
   } else {
     if (stacked) {
       p <-
         x %>%
-        magrittr::use_series(data) %>%
+        use_series(utility) %>%
+        use_series(data) %>%
         dplyr::select(x = !! k, y = !! j) %>%
-        ggplot2::ggplot() +
-        ggplot2::geom_bar(ggplot2::aes(x, fill = y), position = "stack") +
-        ggplot2::xlab(x_lab) + ggplot2::ggtitle(paste(x_lab, "vs", y_lab)) +
-        ggplot2::labs(fill = y_lab)
+        ggplot() +
+        geom_bar(aes(x, fill = y), position = "stack") +
+        xlab(x_lab) + ggtitle(paste(x_lab, "vs", y_lab)) +
+        labs(fill = y_lab)
     } else {
       p <-
         x %>%
-        magrittr::use_series(data) %>%
+        use_series(utility) %>%
+        use_series(data) %>%
         dplyr::select(x = !! k, y = !! j) %>%
-        ggplot2::ggplot() +
-        ggplot2::geom_bar(ggplot2::aes(x, fill = y), position = "dodge") +
-        ggplot2::xlab(x_lab) + ggplot2::ggtitle(paste(x_lab, "vs", y_lab)) +
-        ggplot2::labs(fill = y_lab)
+        ggplot() +
+        geom_bar(aes(x, fill = y), position = "dodge") +
+        xlab(x_lab) + ggtitle(paste(x_lab, "vs", y_lab)) +
+        labs(fill = y_lab)
     }
   }
 
@@ -149,18 +163,17 @@ plot.ds_cross_table <- function(x, stacked = FALSE, proportional = FALSE,
 
 }
 
-#' @importFrom magrittr %<>%
 #' @rdname ds_cross_table
 #' @export
 #'
-ds_twoway_table <- function(data, var1, var2) {
+ds_twoway_table <- function(data, var_1, var_2) {
 
   check_df(data)
-  var1_name <- deparse(substitute(var1))
-  var2_name <- deparse(substitute(var2))
+  var1_name <- deparse(substitute(var_1))
+  var2_name <- deparse(substitute(var_2))
 
-  var_1 <- rlang::enquo(var1)
-  var_2 <- rlang::enquo(var2)
+  var_1 <- rlang::enquo(var_1)
+  var_2 <- rlang::enquo(var_2)
   check_factor(data, !! var_1, var1_name)
   check_factor(data, !! var_2, var2_name)
 
@@ -212,10 +225,7 @@ get_names <- function(x) {
   if (is.factor(x)) {
     varname <- levels(x)
   } else {
-    varname <-
-      x %>%
-      sort() %>%
-      unique()
+    varname <- unique(sort(x))
   }
 
   return(varname)

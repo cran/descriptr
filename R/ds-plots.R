@@ -7,8 +7,11 @@
 #' @param ... Column(s) in \code{data}.
 #'
 #' @examples
-#' ds_plot_scatter(mtcarz)
+#' # plot select variables
 #' ds_plot_scatter(mtcarz, mpg, disp)
+#'
+#' # plot all variables
+#' ds_plot_scatter(mtcarz)
 #'
 #' @importFrom rlang sym
 #' @importFrom utils combn
@@ -23,7 +26,7 @@ ds_plot_scatter <- function(data, ..., print_plot = TRUE) {
 
   if (length(var) < 1) {
     if (!any(is_num == TRUE)) {
-      rlang::abort("Data has no continuous variables.")
+      stop("Data has no continuous variables.", call. = FALSE)
     }
     plot_data <- data[is_num]
   } else {
@@ -31,17 +34,13 @@ ds_plot_scatter <- function(data, ..., print_plot = TRUE) {
       dplyr::select(!!! var)
     is_num <- sapply(data, is.numeric)
     if (!any(is_num == TRUE)) {
-      rlang::abort("Data has no continuous variables.")
+      stop("Data has no continuous variables.", call. = FALSE)
     }
     if (length(is_num) < 2) {
-      rlang::abort("Scatter plot requires 2 continuous variables.")
+      stop("Scatter plot requires 2 continuous variables.", call. = FALSE)
     } else {
       plot_data <- data[is_num]
     }
-  }
-
-  if (ncol(plot_data) < 1) {
-    rlang::abort("Data has no continuous variables.")
   }
 
   num_var   <- names(plot_data)
@@ -54,8 +53,8 @@ ds_plot_scatter <- function(data, ..., print_plot = TRUE) {
     x <- num_num[, i][1]
     y <- num_num[, i][2]
     p <-
-      ggplot2::ggplot(data = plot_data) +
-      ggplot2::geom_point(ggplot2::aes(x = !! rlang::sym(x), y = !! rlang::sym(y)))
+      ggplot(data = plot_data) +
+      geom_point(aes(x = !! rlang::sym(x), y = !! rlang::sym(y)))
     myplots[[i]] <- p
     names(myplots)[[i]] <- paste(y, "v", x)
   }
@@ -80,9 +79,14 @@ ds_plot_scatter <- function(data, ..., print_plot = TRUE) {
 #' @param print_plot logical; if \code{TRUE}, prints the plot else returns a plot object.
 #'
 #' @examples
-#' ds_plot_histogram(mtcarz)
+#' # plot single variable
 #' ds_plot_histogram(mtcarz, mpg)
+#'
+#' # plot multiple variables
 #' ds_plot_histogram(mtcarz, mpg, disp, hp)
+#'
+#' # plot all variables
+#' ds_plot_histogram(mtcarz)
 #'
 #' @export
 #'
@@ -95,7 +99,7 @@ ds_plot_histogram <- function(data, ..., bins = 5, fill = 'blue',
 
   if (length(var) < 1) {
     if (!any(is_num == TRUE)) {
-      rlang::abort("Data has no continuous variables.")
+      stop("Data has no continuous variables.", call. = FALSE)
     }
     plot_data <- data[is_num]
   } else {
@@ -103,13 +107,9 @@ ds_plot_histogram <- function(data, ..., bins = 5, fill = 'blue',
       dplyr::select(!!! var)
     is_num <- sapply(data, is.numeric)
     if (!any(is_num == TRUE)) {
-      rlang::abort("Data has no continuous variables.")
+      stop("Data has no continuous variables.", call. = FALSE)
     }
     plot_data <- data[is_num]
-  }
-
-  if (ncol(plot_data) < 1) {
-    rlang::abort("Data has no continuous variables.")
   }
 
   num_var   <- names(plot_data)
@@ -119,8 +119,8 @@ ds_plot_histogram <- function(data, ..., bins = 5, fill = 'blue',
   for (i in seq_len(n)) {
     x <- num_var[i]
     p <-
-      ggplot2::ggplot(data = plot_data) +
-      ggplot2::geom_histogram(ggplot2::aes(x = !! rlang::sym(x)), bins = bins,
+      ggplot(data = plot_data) +
+      geom_histogram(aes(x = !! rlang::sym(x)), bins = bins,
         fill = fill)
     myplots[[i]] <- p
     names(myplots)[[i]] <- x
@@ -146,9 +146,14 @@ ds_plot_histogram <- function(data, ..., bins = 5, fill = 'blue',
 #' @param print_plot logical; if \code{TRUE}, prints the plot else returns a plot object.
 #'
 #' @examples
-#' ds_plot_density(mtcarz)
+#' # plot single variable
 #' ds_plot_density(mtcarz, mpg)
+#'
+#' # plot multiple variables
 #' ds_plot_density(mtcarz, mpg, disp, hp)
+#'
+#' # plot all variables
+#' ds_plot_density(mtcarz)
 #'
 #' @export
 #'
@@ -160,7 +165,7 @@ ds_plot_density <- function(data, ..., color = 'blue', print_plot = TRUE) {
 
   if (length(var) < 1) {
     if (!any(is_num == TRUE)) {
-      rlang::abort("Data has no continuous variables.")
+      stop("Data has no continuous variables.", call. = FALSE)
     }
     plot_data <- data[is_num]
   } else {
@@ -168,13 +173,9 @@ ds_plot_density <- function(data, ..., color = 'blue', print_plot = TRUE) {
       dplyr::select(!!! var)
     is_num <- sapply(data, is.numeric)
     if (!any(is_num == TRUE)) {
-      rlang::abort("Data has no continuous variables.")
+      stop("Data has no continuous variables.", call. = FALSE)
     }
     plot_data <- data[is_num]
-  }
-
-  if (ncol(plot_data) < 1) {
-    rlang::abort("Data has no continuous variables.")
   }
 
   num_var   <- names(plot_data)
@@ -184,8 +185,8 @@ ds_plot_density <- function(data, ..., color = 'blue', print_plot = TRUE) {
   for (i in seq_len(n)) {
     x <- num_var[i]
     p <-
-      ggplot2::ggplot(data = plot_data) +
-      ggplot2::geom_density(ggplot2::aes(x = !! rlang::sym(x)), color = color)
+      ggplot(data = plot_data) +
+      geom_density(aes(x = !! rlang::sym(x)), color = color)
     myplots[[i]] <- p
     names(myplots)[[i]] <- x
   }
@@ -209,9 +210,14 @@ ds_plot_density <- function(data, ..., color = 'blue', print_plot = TRUE) {
 #' @param print_plot logical; if \code{TRUE}, prints the plot else returns a plot object.
 #'
 #' @examples
-#' ds_plot_bar(mtcarz)
+#' # plot single variable
 #' ds_plot_bar(mtcarz, cyl)
+#'
+#' # plot multiple variables
 #' ds_plot_bar(mtcarz, cyl, gear)
+#'
+#' # plot all variables
+#' ds_plot_bar(mtcarz)
 #'
 #' @export
 #'
@@ -223,7 +229,7 @@ ds_plot_bar <- function(data, ..., fill = 'blue', print_plot = TRUE) {
 
   if (length(var) < 1) {
     if (!any(is_factor == TRUE)) {
-      rlang::abort("Data has no categorical variables.")
+      stop("Data has no categorical variables.", call. = FALSE)
     }
     plot_data <- data[is_factor]
   } else {
@@ -231,13 +237,9 @@ ds_plot_bar <- function(data, ..., fill = 'blue', print_plot = TRUE) {
       dplyr::select(!!! var)
     is_factor <- sapply(data, is.factor)
     if (!any(is_factor == TRUE)) {
-      rlang::abort("Data has no categorical variables.")
+      stop("Data has no categorical variables.", call. = FALSE)
     }
     plot_data <- data[is_factor]
-  }
-
-  if (ncol(plot_data) < 1) {
-    rlang::abort("Data has no categorical variables.")
   }
 
   factor_var <- names(plot_data)
@@ -247,8 +249,8 @@ ds_plot_bar <- function(data, ..., fill = 'blue', print_plot = TRUE) {
   for (i in seq_len(n)) {
     x <- factor_var[i]
     p <-
-      ggplot2::ggplot(data = plot_data) +
-      ggplot2::geom_bar(ggplot2::aes(x = !! rlang::sym(x)), fill = fill)
+      ggplot(data = plot_data) +
+      geom_bar(aes(x = !! rlang::sym(x)), fill = fill)
     myplots[[i]] <- p
     names(myplots)[[i]] <- x
   }
@@ -272,9 +274,14 @@ ds_plot_bar <- function(data, ..., fill = 'blue', print_plot = TRUE) {
 #' @param print_plot logical; if \code{TRUE}, prints the plot else returns a plot object.
 #'
 #' @examples
-#' ds_plot_box_single(mtcarz)
+#' # plot single variable
 #' ds_plot_box_single(mtcarz, mpg)
+#'
+#' # plot multiple variables
 #' ds_plot_box_single(mtcarz, mpg, disp, hp)
+#'
+#' # plot all variables
+#' ds_plot_box_single(mtcarz)
 #'
 #' @export
 #'
@@ -286,7 +293,7 @@ ds_plot_box_single <- function(data, ..., print_plot = TRUE) {
 
   if (length(var) < 1) {
     if (!any(is_num == TRUE)) {
-      rlang::abort("Data has no continuous variables.")
+      stop("Data has no continuous variables.", call. = FALSE)
     }
     plot_data <- data[is_num]
   } else {
@@ -294,13 +301,9 @@ ds_plot_box_single <- function(data, ..., print_plot = TRUE) {
       dplyr::select(!!! var)
     is_num <- sapply(data, is.numeric)
     if (!any(is_num == TRUE)) {
-      rlang::abort("Data has no continuous variables.")
+      stop("Data has no continuous variables.", call. = FALSE)
     }
     plot_data <- data[is_num]
-  }
-
-  if (ncol(plot_data) < 1) {
-    rlang::abort("Data has no continuous variables.")
   }
 
   num_var   <- names(plot_data)
@@ -310,9 +313,9 @@ ds_plot_box_single <- function(data, ..., print_plot = TRUE) {
   for (i in seq_len(n)) {
     x <- num_var[i]
     p <-
-      ggplot2::ggplot(data = plot_data) +
-      ggplot2::geom_boxplot(ggplot2::aes(x = factor(1), y = !! rlang::sym(x))) +
-      ggplot2::labs(x = ' ')
+      ggplot(data = plot_data) +
+      geom_boxplot(aes(x = factor(1), y = !! rlang::sym(x))) +
+      labs(x = ' ')
     myplots[[i]] <- p
     names(myplots)[[i]] <- x
   }
@@ -336,9 +339,14 @@ ds_plot_box_single <- function(data, ..., print_plot = TRUE) {
 #' @param print_plot logical; if \code{TRUE}, prints the plot else returns a plot object.
 #'
 #' @examples
+#' # subset data
 #' mt <- dplyr::select(mtcarz, cyl, gear, am)
-#' ds_plot_bar_stacked(mt)
+#'
+#' # stacked bar plot
 #' ds_plot_bar_stacked(mtcarz, cyl, gear)
+#'
+#' # plot all variables
+#' ds_plot_bar_stacked(mt)
 #'
 #' @export
 #'
@@ -350,7 +358,7 @@ ds_plot_bar_stacked <- function(data, ..., print_plot = TRUE) {
 
   if (length(var) < 1) {
     if (!any(is_factor == TRUE)) {
-      rlang::abort("Data has no categorical variables.")
+      stop("Data has no categorical variables.", call. = FALSE)
     }
     plot_data <- data[is_factor]
   } else {
@@ -358,17 +366,13 @@ ds_plot_bar_stacked <- function(data, ..., print_plot = TRUE) {
       dplyr::select(!!! var)
     is_factor <- sapply(data, is.factor)
     if (!any(is_factor == TRUE)) {
-      rlang::abort("Data has no categorical variables.")
+      stop("Data has no categorical variables.", call. = FALSE)
     }
     if (length(is_factor) < 2) {
-      rlang::abort("Stacked bar plot requires 2 categorical variables.")
+      stop("Stacked bar plot requires 2 categorical variables.", call. = FALSE)
     } else {
       plot_data <- data[is_factor]
     }
-  }
-
-  if (ncol(plot_data) < 1) {
-    rlang::abort("Data has no categorical variables.")
   }
 
   factor_var    <- names(plot_data)
@@ -381,8 +385,8 @@ ds_plot_bar_stacked <- function(data, ..., print_plot = TRUE) {
     x <- fact_fact[, i][1]
     y <- fact_fact[, i][2]
     p <-
-      ggplot2::ggplot(data = plot_data) +
-      ggplot2::geom_bar(ggplot2::aes(x = !! rlang::sym(x), fill = !! rlang::sym(y)))
+      ggplot(data = plot_data) +
+      geom_bar(aes(x = !! rlang::sym(x), fill = !! rlang::sym(y)))
     myplots[[i]] <- p
     names(myplots)[[i]] <- paste(y, "v", x)
   }
@@ -405,9 +409,14 @@ ds_plot_bar_stacked <- function(data, ..., print_plot = TRUE) {
 #' @param print_plot logical; if \code{TRUE}, prints the plot else returns a plot object.
 #'
 #' @examples
+#' # subset data
 #' mt <- dplyr::select(mtcarz, cyl, gear, am)
-#' ds_plot_bar_grouped(mt)
+#'
+#' # grouped bar plot
 #' ds_plot_bar_grouped(mtcarz, cyl, gear)
+#'
+#' # plot all variables
+#' ds_plot_bar_grouped(mt)
 #'
 #' @export
 #'
@@ -419,7 +428,7 @@ ds_plot_bar_grouped <- function(data, ..., print_plot = TRUE) {
 
   if (length(var) < 1) {
     if (!any(is_factor == TRUE)) {
-      rlang::abort("Data has no categorical variables.")
+      stop("Data has no categorical variables.", call. = FALSE)
     }
     plot_data <- data[is_factor]
   } else {
@@ -427,18 +436,15 @@ ds_plot_bar_grouped <- function(data, ..., print_plot = TRUE) {
       dplyr::select(!!! var)
     is_factor <- sapply(data, is.factor)
     if (!any(is_factor == TRUE)) {
-      rlang::abort("Data has no categorical variables.")
+      stop("Data has no categorical variables.", call. = FALSE)
     }
     if (length(is_factor) < 2) {
-      rlang::abort("Grouped bar plot requires 2 categorical variables.")
+      stop("Grouped bar plot requires 2 categorical variables.", call. = FALSE)
     } else {
       plot_data <- data[is_factor]
     }
   }
 
-  if (ncol(plot_data) < 1) {
-    rlang::abort("Data has no categorical variables.")
-  }
 
   factor_var    <- names(plot_data)
   factor_start  <- combn(factor_var, 2)
@@ -450,8 +456,8 @@ ds_plot_bar_grouped <- function(data, ..., print_plot = TRUE) {
     x <- fact_fact[, i][1]
     y <- fact_fact[, i][2]
     p <-
-      ggplot2::ggplot(data = plot_data) +
-      ggplot2::geom_bar(ggplot2::aes(x = !! rlang::sym(x), fill = !! rlang::sym(y)),
+      ggplot(data = plot_data) +
+      geom_bar(aes(x = !! rlang::sym(x), fill = !! rlang::sym(y)),
         position = 'dodge')
     myplots[[i]] <- p
     names(myplots)[[i]] <- paste(y, "v", x)
@@ -476,9 +482,14 @@ ds_plot_bar_grouped <- function(data, ..., print_plot = TRUE) {
 #' @param print_plot logical; if \code{TRUE}, prints the plot else returns a plot object.
 #'
 #' @examples
+#' # subset data
 #' mt <- dplyr::select(mtcarz, cyl, disp, mpg)
-#' ds_plot_box_group(mt)
+#'
+#' # plot select variables
 #' ds_plot_box_group(mtcarz, cyl, gear, mpg)
+#'
+#' # plot all variables
+#' ds_plot_box_group(mt)
 #'
 #' @export
 #'
@@ -492,10 +503,10 @@ ds_plot_box_group <- function(data, ..., print_plot = TRUE) {
 
   if (length(var) < 1) {
     if (!any(is_factor == TRUE)) {
-      rlang::abort("Data has no categorical variables.")
+      stop("Data has no categorical variables.", call. = FALSE)
     }
     if (!any(is_num == TRUE)) {
-      rlang::abort("Data has no continuous variables.")
+      stop("Data has no continuous variables.", call. = FALSE)
     }
     plot_data  <- cbind(data[is_factor] , data[is_num] )
   } else {
@@ -503,17 +514,13 @@ ds_plot_box_group <- function(data, ..., print_plot = TRUE) {
       dplyr::select(!!! var)
     is_num    <- sapply(data, is.numeric)
     if (!any(is_num == TRUE)) {
-      rlang::abort("Data has no continuous variables.")
+      stop("Data has no continuous variables.", call. = FALSE)
     }
     is_factor <- sapply(data, is.factor)
     if (!any(is_factor == TRUE)) {
-      rlang::abort("Data has no categorical variables.")
+      stop("Data has no categorical variables.", call. = FALSE)
     }
     plot_data <- cbind(data[is_factor], data[is_num])
-  }
-
-  if (ncol(data) < 1) {
-    rlang::abort("Data should include at least one categorical and one continuous variable.")
   }
 
   is_num    <- sapply(plot_data, is.numeric)
@@ -530,8 +537,8 @@ ds_plot_box_group <- function(data, ..., print_plot = TRUE) {
     x <- as.character(combs[i, 1])
     y <- as.character(combs[i, 2])
     p <-
-      ggplot2::ggplot(data = plot_data) +
-      ggplot2::geom_boxplot(ggplot2::aes(x = !! rlang::sym(x), y = !! rlang::sym(y)))
+      ggplot(data = plot_data) +
+      geom_boxplot(aes(x = !! rlang::sym(x), y = !! rlang::sym(y)))
     myplots[[i]] <- p
     names(myplots)[[i]] <- paste(y, "v", x)
   }

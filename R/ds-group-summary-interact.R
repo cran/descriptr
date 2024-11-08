@@ -4,7 +4,7 @@
 #' of two or more categorical variables.
 #'
 #' @param data A \code{data.frame} or a \code{tibble}.
-#' @param cvar Column in \code{data}; continuous variable.
+#' @param col Column in \code{data}; continuous variable.
 #' @param ... Columns in \code{data}; categorical variables.
 #'
 #' @examples
@@ -14,12 +14,12 @@
 #'
 #' @export
 #'
-ds_group_summary_interact <- function(data, cvar, ...) {
+ds_group_summary_interact <- function(data, col, ...) {
 
   check_df(data)
 
-  cvar_name <- deparse(substitute(cvar))
-  c_var <- rlang::enquo(cvar)
+  cvar_name <- deparse(substitute(col))
+  c_var <- rlang::enquo(col)
   check_numeric(data, !! c_var, cvar_name)
 
   g_var <- rlang::quos(...)
@@ -31,10 +31,10 @@ ds_group_summary_interact <- function(data, cvar, ...) {
                     paste("-", non_type, collapse = "\n"))
 
   if (length(non_type) > 0) {
-        stop(error_message)
+        stop(error_message, call. = FALSE)
   }
 
-  cats <- unlist(lapply(gdata, is.factor))
+  cats   <- unlist(lapply(gdata, is.factor))
   cnames <- colnames(gdata[cats])
 
   data %>%
@@ -47,10 +47,10 @@ ds_group_summary_interact <- function(data, cvar, ...) {
     dplyr::group_by(Levels) %>%
     dplyr::summarise_all(list(
       min = min, max = max, mean = mean, t_mean = trimmed_mean,
-      median = stats::median, mode = ds_mode, range = ds_range,
-      variance = stats::var, stdev = stats::sd, skew = ds_skewness,
+      median = median, mode = ds_mode, range = ds_range,
+      variance = var, stdev = sd, skew = ds_skewness,
       kurtosis = ds_kurtosis, coeff_var = ds_cvar, q1 = quant1,
-      q3 = quant3, iqrange = stats::IQR), na.rm = TRUE) %>%
+      q3 = quant3, iqrange = IQR)) %>%
     tidyr::separate(Levels, into = cnames)
 
 }

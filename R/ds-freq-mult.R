@@ -8,22 +8,14 @@ freq_table2.default <- function(data, name) {
     data %>%
     dplyr::select(name) %>%
     dplyr::pull(1) %>%
-    stats::na.omit()
+    na.omit()
 
   if (!is.factor(dat)) {
-    stop("data must be categorical/qualitative")
+    stop("Data must be categorical/qualitative.", call. = FALSE)
   }
 
-  cq <-
-    dat %>%
-    sort() %>%
-    unique()
-
-  result <-
-    dat %>%
-    table() %>%
-    as.vector()
-
+  cq          <- unique(sort(dat))
+  result      <- as.vector(table(dat))
   level_names <- levels(dat)
   data_len    <- length(dat)
   len         <- length(result)
@@ -31,7 +23,7 @@ freq_table2.default <- function(data, name) {
   per         <- percent(result, data_len)
   cum_per     <- percent(cum, data_len)
 
-  ftable <- tibble::tibble(
+  ftable <- data.frame(
     Levels          = level_names,
     Frequency       = result,
     `Cum Frequency` = cum,
@@ -51,7 +43,7 @@ freq_table2.default <- function(data, name) {
     length()
 
   if (na_count > 0) {
-    na_data <- dplyr::pull(data, !! varyable)
+    na_data <- dplyr::pull(data, var_name)
 
     var_count <-
       na_data %>%

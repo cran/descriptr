@@ -8,10 +8,10 @@ ds_freq_numeric <- function(data, variable, bins = 5) {
   fdata <-
     data %>%
     dplyr::pull(!! varyable) %>%
-    stats::na.omit()
+    na.omit()
 
   if (!is.numeric(bins)) {
-    stop("bins must be integer value")
+    stop("bins must be integer value", call. = FALSE)
   }
 
   if (is.numeric(bins)) {
@@ -51,56 +51,59 @@ ds_freq_numeric <- function(data, variable, bins = 5) {
   lower_n <- n_bins + 1
 
   freq_data <-
-    tibble::tibble(lower        = inta[-lower_n],
-           upper        = inta[-1],
-           frequency    = result,
-           cumulative   = cum,
-           freq_percent = per,
-           cum_percent  = cum_per)
+    data.frame(lower        = inta[-lower_n],
+                   upper        = inta[-1],
+                   frequency    = result,
+                   cumulative   = cum,
+                   freq_percent = per,
+                   cum_percent  = cum_per)
 
-  out <- list(freq_data   = freq_data,
-              breaks      = inta,
-              frequency   = result,
-              cumulative  = cum,
-              percent     = per,
-              cum_percent = cum_per,
-              bins        = n_bins,
-              data        = fdata,
-              na_count    = na_freq,
-              n           = n_obs,
-              varname     = var_name
-  )
+  utility <- list(breaks      = inta,
+                  frequency   = result,
+                  cumulative  = cum,
+                  percent     = per,
+                  cum_percent = cum_per,
+                  bins        = n_bins,
+                  data        = fdata,
+                  na_count    = na_freq,
+                  n           = n_obs,
+                  varname     = var_name)
+
+  out <- list(ftable  = freq_data,
+              utility = utility)
 
   return(out)
 }
 
 plot_ds_freq_numeric <- function(x, ...) {
 
-  x_lab <- magrittr::use_series(x, varname)
+  x_lab <-
+    x %>%
+    use_series(utility) %>%
+    use_series(varname)
 
   k <-
     x %>%
-    magrittr::use_series(varname) %>%
-    magrittr::extract(1) %>%
+    use_series(utility) %>%
+    use_series(varname) %>%
+    extract(1) %>%
     rlang::sym()
 
   bins <-
     x %>%
-    magrittr::use_series(frequency) %>%
+    use_series(utility) %>%
+    use_series(frequency) %>%
     length()
 
   p <-
-    x %>%
-    magrittr::use_series(frequency) %>%
-    tibble::enframe(name = NULL) %>%
-    tibble::add_column(x = seq_len(bins), .before = 1) %>%
-    ggplot2::ggplot() +
-    ggplot2::geom_col(
-      ggplot2::aes(x = x, y = value), width = 0.999,
+    data.frame(x = seq_len(x$utility$bins), value = x$utility$frequency) %>%
+    ggplot() +
+    geom_col(
+      aes(x = x, y = value), width = 0.999,
       fill = "blue", color = "black"
     ) +
-    ggplot2::xlab(x_lab) + ggplot2::ylab("Count") +
-    ggplot2::ggtitle(paste("Histogram of", x_lab))
+    xlab(x_lab) + ylab("Count") +
+    ggtitle(paste("Histogram of", x_lab))
 
   return(p)
 

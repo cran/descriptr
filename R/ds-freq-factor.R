@@ -8,7 +8,7 @@ ds_freq_factor <- function(data, variable) {
   fdata <-
     data %>%
     dplyr::pull(!! varyable) %>%
-    stats::na.omit()
+    na.omit()
 
   var_name <-
     data %>%
@@ -32,7 +32,7 @@ ds_freq_factor <- function(data, variable) {
   per         <- percent(result, data_len)
   cum_per     <- percent(cum, data_len)
 
-  ftable <- tibble::tibble(
+  ftable <- data.frame(
     Levels          = level_names,
     Frequency       = result,
     `Cum Frequency` = cum,
@@ -65,12 +65,14 @@ ds_freq_factor <- function(data, variable) {
     na_freq <- 0
   }
 
+  utility <- list(varname  = var_name,
+                  data     = data,
+                  na_count = na_freq,
+                  n        = n_obs)
+
   result <- list(
-    ftable   = ftable,
-    varname  = var_name,
-    data     = data,
-    na_count = na_freq,
-    n        = n_obs
+    ftable  = ftable,
+    utility = utility
   )
 
   return(result)
@@ -81,23 +83,26 @@ plot_ds_freq_factor <- function(x, ...) {
 
   x_lab <-
     x %>%
-    magrittr::use_series(varname) %>%
-    magrittr::extract(1)
+    use_series(utility) %>%
+    use_series(varname) %>%
+    extract(1)
 
   k <-
     x %>%
-    magrittr::use_series(varname) %>%
-    magrittr::extract(1) %>%
+    use_series(utility) %>%
+    use_series(varname) %>%
+    extract(1) %>%
     rlang::sym()
 
   p <-
     x %>%
-    magrittr::use_series(data) %>%
+    use_series(utility) %>%
+    use_series(data) %>%
     dplyr::select(x = !! k) %>%
-    ggplot2::ggplot() +
-    ggplot2::geom_bar(ggplot2::aes(x = x), fill = "blue") +
-    ggplot2::xlab(x_lab) + ggplot2::ylab("Count") +
-    ggplot2::ggtitle(paste("Bar plot of", x_lab))
+    ggplot() +
+    geom_bar(aes(x = x), fill = "blue") +
+    xlab(x_lab) + ylab("Count") +
+    ggtitle(paste("Bar plot of", x_lab))
 
   return(p)
 
